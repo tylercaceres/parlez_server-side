@@ -1,0 +1,17 @@
+io.on('connection', (socket) => {
+	socket.on('join room', (data) => {
+		socket.join(data);
+	});
+
+	socket.on('new msg', (data) => {
+		console.log(data);
+		const {message, user, chatroom} = data;
+		console.log('user:', user);
+		console.log('message:', message);
+		console.log('chatroom:', chatroom);
+
+		db.appendMessage(user, chatroom, message).then((data) => {
+			io.to(chatroom).emit('sending new single message', data);
+		});
+	});
+});
