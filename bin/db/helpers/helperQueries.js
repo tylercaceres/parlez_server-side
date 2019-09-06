@@ -1,39 +1,51 @@
 const db = require('../../../db/connection/db');
-
-// resources :chatrooms, only: [:index, :show, :create, :update] do
-//    resources :messages, only: [:create, :update, :delete]
-//  end
-//  resources :users, only: [:show, :update, :delete]
-//  resources :friends, only: [:index, :create, :update, :delete]
-//  resources :blocks, only: [:index, :create, :delete]
-//  resources :participants, only: [:create, :update, :delete]
+const {formatChatroomMessages} = require('./dataFormatter');
 
 // chatrooms********************
 // index
-const getAllChatroomMessages = (userId) => {
+const getAllChatroomMessages = (user_id) => {
 	return db
 		.query({
 			text: `SELECT *
-      FROM messages m JOIN user_message_views umv on umv.message_id = m.id
-      WHERE umv.user_id = $1;
+			FROM messages m JOIN user_message_views umv on umv.message_id = m.id
+			JOIN chatrooms c on c.id = m.chatroom_id
+			WHERE umv.user_id = $1;
     `,
-			values: [userId],
+			values: [user_id],
 			name: 'get_all_chatroom_messages'
 		})
-		.then((res) => res.rows);
+		.then((res) => formatChatroomMessages(res.rows));
 };
-// show
-const getChatroomMessages = (userId, chatroomId) => {
+
+//get most recent message from each chatroom
+const getRecentChatroomMessages = (user_id) => {
 	return db
 		.query({
 			text: `SELECT *
-      FROM messages m JOIN user_message_views umv on umv.message_id = m.id
-      WHERE umv.user_id = $1 and m.chatroom_id = $2;
+			FROM messages m JOIN user_message_views umv on umv.message_id = m.id
+			JOIN chatrooms c on c.id = m.chatroom_id
+			WHERE umv.user_id = $1;
     `,
-			values: [userId, chatroomId],
+			values: [user_id],
+			name: 'get_recent_chatroom_messages'
+		})
+		.then((res) => formatChatroomMessages(res.rows));
+};
+
+// show
+const getChatroomMessages = (user_id, chatroom_id) => {
+	return db
+		.query({
+			text: `SELECT *
+			FROM messages m JOIN user_message_views umv on umv.message_id = m.id
+			join chatrooms c on c.id = m.chatroom_id
+			WHERE umv.user_id = $1 and m.chatroom_id = $2
+			LIMIT 10;
+    `,
+			values: [user_id, chatroom_id],
 			name: 'get_chatroom_messages'
 		})
-		.then((res) => res.rows);
+		.then((res) => formatChatroomMessages(res.rows));
 };
 // create
 const createChatroom = (
@@ -99,7 +111,7 @@ const updateChatroomMessage = (user_id, chatroom_id, message_id, content) => {
 		.query({
 			text: `UPDATE messages
 			SET content = $4, updated_at = NOW()
-			WHERE user_id = $1 and chatroom_id = $2 and id = $3
+			WHERE owner_user_id = $1 and chatroom_id = $2 and id = $3
 			RETURNING *;
 			`,
 			values: [user_id, chatroom_id, message_id, content],
@@ -113,7 +125,7 @@ const deleteMyChatroomMessage = (user_id, chatroom_id, message_id) => {
 		.query({
 			text: `UPDATE messages
 			SET content = 'This comment has been deleted.', updated_at = NOW()
-			WHERE user_id = $1 and chatroom_id = $2 and id = $3
+			WHERE owner_user_id = $1 and chatroom_id = $2 and id = $3
 			RETURNING *;
 			`,
 			values: [user_id, chatroom_id, message_id],
@@ -242,4 +254,8 @@ const getMessages = (user_id, chatroom_id) => {
 		.then((res) => res.rows);
 };
 
-module.exports = {createChatroom};
+module.exports = {
+	createChatroom,
+	getAllChatroomMessages,
+	getRecentChatroomMessages
+};

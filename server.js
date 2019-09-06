@@ -1,5 +1,6 @@
 // load .env data into process.env
 require('dotenv').config();
+require('util').inspect.defaultOptions.depth = null;
 
 // constant setup
 const PORT = process.env.PORT || 3003;
@@ -37,7 +38,11 @@ io.use(
 );
 
 // DB functions
-const {createChatroom} = require('./bin/db/helpers/helperQueries');
+const {
+	createChatroom,
+	getAllChatroomMessages,
+	getRecentChatroomMessages
+} = require('./bin/db/helpers/helperQueries');
 
 // server initialize
 app.listen(PORT, () => console.log(`Running on port ${PORT}`));
@@ -48,9 +53,14 @@ app.use((req, res, next) => {
 	next();
 });
 
-createChatroom('single', 'test chatroom single 1', 2, [1, 2, 3, 4, 5])
-	.then((res) => console.log('output data:', res))
-	.catch((err) => console.log('error msg:', err));
+// getAllChatroomMessages(4).then((res) => console.log(res));
+getRecentChatroomMessages(4)
+	.then((res) => console.log(res))
+	.catch((err) => console.log(err));
+
+// createChatroom('single', 'test chatroom single 1', 2, [1, 2, 3, 4, 5])
+// 	.then((res) => console.log('output data:', res))
+// 	.catch((err) => console.log('error msg:', err));
 
 app.get('/', (req, res) => {
 	res.render('index');
