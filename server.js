@@ -67,40 +67,90 @@ app.get('/', (req, res) => {
 	res.render('index');
 });
 
+/**
+ * participant 						sockets = {
+ * 												'1' : 'xyz1234___1234',
+ * 												'2' : 'abcdefghijklmnopqrstuvwxyz'}
+ */
+const participantSockets = {};
+
 // ********************** SOCKETS
 io.on('connect', (socket) => {
-	//send most recent data to socket ********************
-	const initialLoad = async (user_id) => {
-		try {
-			const recentChatroomMessages = await getRecentChatroomMessages(user_id);
-			console.log(recentChatroomMessages);
-			socket.emit('initial data', recentChatroomMessages);
-			const activeChatrooms = await getActiveChatrooms(user_id);
-			// console.log(activeChatrooms);
-			activeChatrooms.forEach((chatroom) => {
-				socket.join(chatroom.chatroom_id);
-				io.to(chatroom.chatroom_id).emit('joined room', chatroom.id);
-			});
-		} catch (error) {
-			console.log('Error! :', error);
+	socket.on('provide username', (userid) => {
+		socket.userid = userid;
+		let currentSocket = participantSockets[socket.userid];
+		console.log('username has been provided');
+		console.log('socket userid:', socket.userid);
+		if (currentSocket && io.sockets.sockets[currentSocket]) {
+			console.log('currently logged in socket: ', participantSockets[socket.userid]);
+			io.sockets.sockets[currentSocket].disconnect();
 		}
-	};
-	initialLoad(1);
+		participantSockets[socket.userid] = socket.id;
+		console.log('new socket :', participantSockets[socket.userid]);
+		console.log(participantSockets);
 
-	//create chatroom request ********************
-	// const createNewChatroom = async (type, name, creatorUserId, usersArr, avatar) => {
+		// send most recent data to socket ********************
+		const initialLoad = async (user_id) => {
+			try {
+				const recentChatroomMessages = await getRecentChatroomMessages(user_id);
+				console.log(recentChatroomMessages);
+				socket.emit('initial data', recentChatroomMessages);
+				const activeChatrooms = await getActiveChatrooms(user_id);
+				// console.log(activeChatrooms);
+				activeChatrooms.forEach((chatroom) => {
+					socket.join(chatroom.chatroom_id);
+					io.to(chatroom.chatroom_id).emit('new chatroom joined', `${socket.id} joined room ${chatroom.id}`);
+				});
+			} catch (error) {
+				console.log('Error! :', error);
+			}
+		};
+		// initialLoad(4);
+	});
+
+	// send most recent data to socket ********************
+	// const initialLoad = async (user_id) => {
 	// 	try {
-	// 		const newParticipants = await createChatroom('single', 'testEmitNewChatroom', 1, [1, 2, 3, 4, 5]);
-	// 		// const newParticipants = await createChatroom(type, name, creatorUserId, usersArr, avatar);
-	// 		socket.emit('initial data', newParticipants);
-	// 		newParticipants.forEach((chatroom) => {
-	// 			socket.join(chatroom);
+	// 		const recentChatroomMessages = await getRecentChatroomMessages(user_id);
+	// 		console.log(recentChatroomMessages);
+	// 		socket.emit('initial data', recentChatroomMessages);
+	// 		const activeChatrooms = await getActiveChatrooms(user_id);
+	// 		// console.log(activeChatrooms);
+	// 		activeChatrooms.forEach((chatroom) => {
+	// 			socket.join(chatroom.chatroom_id);
+	// 			io.to(chatroom.chatroom_id).emit('new chatroom joined', `${socket.id} joined room ${chatroom.id}`);
 	// 		});
 	// 	} catch (error) {
 	// 		console.log('Error! :', error);
 	// 	}
 	// };
-	// createNewChatroom('single', 'testChatRoom', 7, [7, 2, 3, 4, 5]);
+	// initialLoad(4);
+
+	// create chatroom request ********************
+	const createNewChatroom = async (type, name, creatorUserId, usersArr, avatar = '') => {
+		try {
+			const newParticipants = await createChatroom(type, name, creatorUserId, usersArr, avatar);
+			//loop through socket IDs, make them join the room **********
+			/**
+			 * TODO: make functionality work
+			 */
+			usersArr.forEach((user) => {
+				console.log(`${user} has joined the room`);
+			});
+
+			// newParticipants.forEach((chatroom) => {
+			// 	socket.join(chatroom);
+			// });
+		} catch (error) {
+			console.log('Error! :', error);
+		}
+	};
+
+	socket.on('create new room', (data) => {
+		console.log('NEW ROOM DATA:', data);
+		const {type, name, creatorUserId, usersArr, avatar} = data;
+		createNewChatroom(type, name, creatorUserId, usersArr, avatar);
+	});
 
 	// .then((res) => socket.emit('initial data provided', res))
 	// .then(
