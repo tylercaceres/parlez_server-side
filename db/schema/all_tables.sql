@@ -85,11 +85,11 @@ CREATE TABLE IF NOT EXISTS participants (
 
 CREATE TABLE IF NOT EXISTS messages (
   id SERIAL PRIMARY KEY NOT NULL,
-  user_id INTEGER NOT NULL REFERENCES users (id) ON DELETE CASCADE,
+  owner_user_id INTEGER NOT NULL REFERENCES users (id) ON DELETE CASCADE,
   chatroom_id INTEGER NOT NULL REFERENCES chatrooms (id),
   content VARCHAR(255) NOT NULL,
   is_deleted BOOLEAN DEFAULT false NOT NULL,
-  created_at timestamp DEFAULT NOW(),
+  created_at timestamp,
   updated_at timestamp DEFAULT NOW()
 );
 
