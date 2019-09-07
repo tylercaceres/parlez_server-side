@@ -73,12 +73,14 @@ const createChatroom = (chatroom_type, name, user_id, users_arr, avatar = null) 
 			text: `
 			with new_chat_id as (INSERT INTO chatrooms (chatroom_type, name, avatar) VALUES ($1,$2,$3) returning id)
 			insert into participants (user_id, chatroom_id, is_admin) 
-				(select user_id, id, user_id = $4 from new_chat_id cross join unnest($5::integer[]) as user_id) returning *
+				(select user_id, id, user_id = $4 from new_chat_id cross join unnest($5::integer[]) as user_id) returning *;
     `,
 			values: [chatroom_type, name, avatar, user_id, users_arr],
 			name: 'create_chatroom'
 		})
-		.then((res) => res.rows);
+		.then((res) => {
+			console.log(res.rows);
+		});
 };
 
 // update
