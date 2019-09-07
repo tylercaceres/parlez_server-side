@@ -1,6 +1,20 @@
 const db = require('../../../db/connection/db');
 const {formatChatroomMessages} = require('./dataFormatter');
 
+//get list of chatrooms that user is in
+const getActiveChatrooms = (user_id) => {
+	return db
+		.query({
+			text: `SELECT *
+		FROM participants
+		WHERE user_id = $1
+		;`,
+			values: [user_id],
+			name: 'get_active_chatrooms'
+		})
+		.then((res) => res.rows);
+};
+
 // chatrooms********************
 // index
 const getAllChatroomMessages = (user_id) => {
@@ -21,11 +35,16 @@ const getAllChatroomMessages = (user_id) => {
 const getRecentChatroomMessages = (user_id) => {
 	return db
 		.query({
-			text: `SELECT *
+			// `text: `SELECT *
+			// FROM messages m JOIN user_message_views umv on umv.message_id = m.id
+			// JOIN chatrooms c on c.id = m.chatroom_id
+			// WHERE umv.user_id = $1;
+			text: `SELECT m.chatroom_id as chatroom_id, m.id as message_id, c.chatroom_type as type, c.name as name, c.avatar as avatar, m.owner_user_id as user_id, m.content as content,
+			m.created_at as created_at, m.is_deleted as deleted, u.username as username
 			FROM messages m JOIN user_message_views umv on umv.message_id = m.id
 			JOIN chatrooms c on c.id = m.chatroom_id
-			WHERE umv.user_id = $1;
-    `,
+			JOIN users u on u.id = m.owner_user_id
+			WHERE umv.user_id = $1;`,
 			values: [user_id],
 			name: 'get_recent_chatroom_messages'
 		})
@@ -48,13 +67,7 @@ const getChatroomMessages = (user_id, chatroom_id) => {
 		.then((res) => formatChatroomMessages(res.rows));
 };
 // create
-const createChatroom = (
-	chatroom_type,
-	name,
-	user_id,
-	users_arr,
-	avatar = null
-) => {
+const createChatroom = (chatroom_type, name, user_id, users_arr, avatar = null) => {
 	return db
 		.query({
 			text: `
@@ -257,5 +270,6 @@ const getMessages = (user_id, chatroom_id) => {
 module.exports = {
 	createChatroom,
 	getAllChatroomMessages,
-	getRecentChatroomMessages
+	getRecentChatroomMessages,
+	getActiveChatrooms
 };

@@ -1,7 +1,6 @@
 //format chatroom messages
 const formatChatroomMessages = (messages) => {
 	let distinctChatrooms = new Set();
-	let chatroomMessages = {};
 	let chatroomArr = [];
 
 	messages.forEach((message) => {
@@ -11,12 +10,7 @@ const formatChatroomMessages = (messages) => {
 
 	distinctChatrooms.forEach((chatroom) => {
 		if (!chatroomArr.find((chatroom) => chatroomArr.id === chatroom)) {
-			const {
-				name,
-				avatar,
-				chatroom_type: type,
-				chatroom_id: id
-			} = messages.find((message) => message.chatroom_id === chatroom);
+			const {name, avatar, type, chatroom_id: id} = messages.find((message) => message.chatroom_id === chatroom);
 			const newChatroom = {id, type, name, avatar};
 			newChatroom.messages = [];
 			chatroomArr.push(newChatroom);
@@ -26,14 +20,8 @@ const formatChatroomMessages = (messages) => {
 	chatroomArr.forEach((chatroom, index) => {
 		messages.forEach((message) => {
 			if (message.chatroom_id === chatroom.id) {
-				const {
-					message_id: id,
-					user_id,
-					content,
-					created_at,
-					is_deleted: deleted
-				} = message;
-				const newMessage = {id, user_id, content, created_at, deleted};
+				const {message_id: id, user_id, content, created_at, deleted, username} = message;
+				const newMessage = {id, user_id, content, created_at, deleted, username};
 				chatroomArr[index].messages.push(newMessage);
 			}
 		});
