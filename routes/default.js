@@ -8,7 +8,7 @@ router.post('/login', async (req, res) => {
 	console.log('email:', email);
 	console.log('password:', password);
 	try {
-		const userInfo = validatePassword(email, password);
+		const userInfo = await validatePassword(email, password);
 		if (!userInfo) {
 			throw new Error();
 		}
@@ -22,6 +22,18 @@ router.post('/login', async (req, res) => {
 router.get('/logout', (req, res) => {
 	req.session.user_id = null;
 	return res.json({msg: 'You have been logged out.'});
+});
+
+router.get('/checkloggedin', async (req, res) => {
+	try {
+		if (!req.session.user_id) {
+			throw new Error();
+		}
+
+		return res.json({msg: 'You have been logged out.'});
+	} catch (err) {
+		return res.json({error: 'Error. You are not logged in.'});
+	}
 });
 
 router.post('/register', async (req, res) => {
