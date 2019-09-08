@@ -23,12 +23,13 @@ app.use(morgan('dev'));
 app.use(express.urlencoded({extended: true}));
 app.set('view engine', 'ejs');
 app.use(express.static(__dirname + '/public'));
-app.use(cors());
+
 // ***** routes *****
-// const defaultRoutes = require('./routes/default');
-// app.use('/', defaultRoutes);
+const defaultRoutes = require('./routes/default');
+app.use('/api/', defaultRoutes);
 
 // additional set up
+app.use(cors());
 app.use(function(req, res, next) {
 	res.header('Access-Control-Allow-Origin', 'http://localhost:3000'); // update to match the domain you will make the request from
 	res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
@@ -36,35 +37,22 @@ app.use(function(req, res, next) {
 	next();
 });
 
-const session = require('express-session')({
-	secret: 'lhl parlez',
-	resave: true,
-	saveUninitialized: true
-});
-const sharedsession = require('express-socket.io-session');
-app.use(session);
-io.use(
-	sharedsession(session, {
-		autoSave: true
-	})
-);
-
-// DB functions
-// const {
-// 	createChatroom,
-// 	getAllChatroomMessages,
-// 	getRecentChatroomMessages,
-// 	getActiveChatrooms
-// } = require('./bin/db/helpers/helperQueries');
+// const session = require('express-session')({
+// 	secret: 'lhl parlez',
+// 	resave: true,
+// 	saveUninitialized: true
+// });
+// const sharedsession = require('express-socket.io-session');
+// app.use(session);
+// io.use(
+// 	sharedsession(session, {
+// 		autoSave: true
+// 	})
+// );
 
 // server initialize
 app.listen(PORT, () => console.log(`Running on port ${PORT}`));
 server.listen(8080);
-
-// app.use((req, res, next) => {
-// 	res.locals.user = req.session.user_id;
-// 	next();
-// });
 
 app.get('/signup', (req, res) => {
 	console.log('REQ PARAMS:', req.params);
@@ -72,29 +60,27 @@ app.get('/signup', (req, res) => {
 	res.json(`you got some data back, ${req.session.user_id}`);
 });
 
+const dbQueries = require('./bin/db/helpers/helperQueries');
+
 // global object to store the latest socket of a user
 const participantSockets = {};
 
 /**
- * participant 						sockets = {
- * 												'1' : 'xyz1234___1234',
- * 												'2' : 'abcdefghijklmnopqrstuvwxyz'}
+ * !socket global object
+ * participantSockets = {'1' : 'xyz1234___1234',
+ * 											'2' : 'abcdefghijklmnopqrstuvwxyz'}
  */
 
 // ********************** SOCKETS
 io.on('connect', (socket) => {
-	console.log(socket.handshake.session.user_id);
-	// console.log(socket.handshake.session);
-	// let currentSocket = participantSockets[socket.userid];
-	// console.log('username has been provided');
-	// console.log('socket userid:', socket.userid);
-	// if (currentSocket && io.sockets.sockets[currentSocket]) {
-	// 	console.log('currently logged in socket: ', participantSockets[socket.userid]);
-	// 	io.sockets.sockets[currentSocket].disconnect();
-	// }
-	// participantSockets[socket.userid] = socket.id;
-	// console.log('new socket :', participantSockets[socket.userid]);
-	// console.log(participantSockets);
+	let currentSocket = participantSockets[socket.userid];
+	if (currentSocket && io.sockets.sockets[currentSocket]) {
+		console.log('currently logged in socket: ', participantSockets[socket.userid]);
+		io.sockets.sockets[currentSocket].disconnect();
+	}
+	participantSockets[socket.userid] = socket.id;
+	console.log('new socket :', participantSockets[socket.userid]);
+	console.log(participantSockets);
 	// // send most recent data to socket ********************
 	// const initialLoad = async (user_id) => {
 	// 	try {
