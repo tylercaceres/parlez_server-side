@@ -21,8 +21,10 @@ const validatePassword = (email, password) => {
 };
 
 const addUser = (username, email, password) => {
-	addUserDB(username, email, generateHashedPassword(password)).then((newUser) => {
+	return addUserDB(username, email, generateHashedPassword(password)).then((newUser) => {
+		console.log('HERE BLURGGGG OASOASNOASMOASMAOS');
 		if (newUser) {
+			console.log('HERE ********', newUser);
 			return newUser;
 		}
 		throw new Error();
