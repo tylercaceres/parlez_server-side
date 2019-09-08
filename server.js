@@ -1,7 +1,6 @@
 // load .env data into process.env
 require('dotenv').config();
 require('util').inspect.defaultOptions.depth = null;
-const cors = require('cors');
 
 // constant setup
 const PORT = process.env.PORT || 3003;
@@ -21,16 +20,9 @@ db.connect();
 const morgan = require('morgan');
 app.use(morgan('dev'));
 app.use(express.json({extended: true}));
-app.set('view engine', 'ejs');
-app.use(express.static(__dirname + '/public'));
+// app.use(express.static(__dirname + '/public'));
 const session = require('express-session');
 
-// additional set up
-// app.use(
-// 	cors({
-// 		origin: 'http://localhost:3000'
-// 	})
-// );
 app.use(function(req, res, next) {
 	res.header('Access-Control-Allow-Origin', 'http://localhost:3000'); // update to match the domain you will make the request from
 	res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');

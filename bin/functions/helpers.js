@@ -25,14 +25,17 @@ const userIdExists = (userId) => {
 
 const validatePassword = (email, password) => {
 	return getUserByEmailDB(email).then((user) => {
-		return bcrypt.compare(password, user.password);
+		if (bcrypt.compare(password, user.password)) {
+			return user;
+		}
+		return false;
 	});
 };
 
 const addUser = (username, email, password) => {
 	return addUserDB(username, email, generateHashedPassword(password)).then((newUser) => {
 		console.log('HERE BLURGGGG OASOASNOASMOASMAOS');
-		if (newUser.length) {
+		if (newUser) {
 			console.log('HERE ********', newUser);
 			return newUser;
 		}

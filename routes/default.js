@@ -13,7 +13,7 @@ router.post('/login', async (req, res) => {
 			throw new Error();
 		}
 		req.session.user_id = userInfo.id;
-		return res.json({user_id: newUser.id});
+		return res.json({user_id: userInfo.id});
 	} catch (err) {
 		return res.json({error: 'Error. Credentials are incorrect.'});
 	}
@@ -48,8 +48,8 @@ router.post('/register', async (req, res) => {
 		return res.json({error: 'Passwords must match.'});
 	}
 	try {
-		const foundEmail = await emailExists(email);
-		if (foundEmail) {
+		const foundUser = await emailExists(email);
+		if (foundUser) {
 			throw new Error();
 		}
 		const newUser = await addUser(username, email, password);
