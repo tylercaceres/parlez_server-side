@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 
-const {emailExists, validatePassword, addUser} = require('../bin/functions/helpers.js');
+const {emailExists, userIdExists, validatePassword, addUser} = require('../bin/functions/helpers.js');
 
 router.post('/login', async (req, res) => {
 	const {email, password} = req.body;
@@ -13,7 +13,7 @@ router.post('/login', async (req, res) => {
 			throw new Error();
 		}
 		req.session.user_id = userInfo.id;
-		return res.json({user_id: newUser.id, logged_in: true});
+		return res.json({user_id: newUser.id});
 	} catch (err) {
 		return res.json({error: 'Error. Credentials are incorrect.'});
 	}
@@ -29,8 +29,11 @@ router.get('/checkloggedin', async (req, res) => {
 		if (!req.session.user_id) {
 			throw new Error();
 		}
-
-		return res.json({msg: 'You have been logged out.'});
+		const userInfo = await userIdExists(req.session.user_id);
+		if (!userInfo) {
+			throw new Error();
+		}
+		return res.json({user_id: userInfo.id});
 	} catch (err) {
 		return res.json({error: 'Error. You are not logged in.'});
 	}
@@ -47,7 +50,6 @@ router.post('/register', async (req, res) => {
 	try {
 		const foundEmail = await emailExists(email);
 		if (foundEmail) {
-			console.log('error2here');
 			throw new Error();
 		}
 		const newUser = await addUser(username, email, password);
