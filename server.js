@@ -23,42 +23,37 @@ app.use(morgan('dev'));
 app.use(express.json({extended: true}));
 app.set('view engine', 'ejs');
 app.use(express.static(__dirname + '/public'));
-
-// ***** routes *****
-const defaultRoutes = require('./routes/default');
-app.use('/api/', defaultRoutes);
+const session = require('express-session');
 
 // additional set up
-app.use(cors());
+// app.use(
+// 	cors({
+// 		origin: 'http://localhost:3000'
+// 	})
+// );
 app.use(function(req, res, next) {
 	res.header('Access-Control-Allow-Origin', 'http://localhost:3000'); // update to match the domain you will make the request from
 	res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
-	res.header('Access-Control-Allow-Credentials', 'true');
+	res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
+	res.header('Access-Control-Allow-Credentials', true);
 	next();
 });
 
-// const session = require('express-session')({
-// 	secret: 'lhl parlez',
-// 	resave: true,
-// 	saveUninitialized: true
-// });
-// const sharedsession = require('express-socket.io-session');
-// app.use(session);
-// io.use(
-// 	sharedsession(session, {
-// 		autoSave: true
-// 	})
-// );
+app.use(
+	session({
+		secret: 'lhl parlez',
+		resave: true,
+		saveUninitialized: true
+	})
+);
+
+// ***** routes *****
+const defaultRoutes = require('./routes/default');
+app.use('/auth/', defaultRoutes);
 
 // server initialize
 app.listen(PORT, () => console.log(`Running on port ${PORT}`));
 server.listen(8080);
-
-app.get('/signup', (req, res) => {
-	console.log('REQ PARAMS:', req.params);
-	req.session.user_id = 'tyler.caceres';
-	res.json(`you got some data back, ${req.session.user_id}`);
-});
 
 const dbQueries = require('./bin/db/helpers/helperQueries');
 
