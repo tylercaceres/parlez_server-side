@@ -97,6 +97,7 @@ const createChatroomMessage = (user_id, chatroom_id, content) => {
 
 module.exports = {
 	getAllChatroomMessages,
+	getSingleChatroomMessage,
 	getRecentChatroomMessages,
 	getChatroomMessages,
 	deleteChatroomMessage,

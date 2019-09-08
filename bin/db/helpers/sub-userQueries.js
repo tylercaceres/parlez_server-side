@@ -26,3 +26,32 @@ const getFriendInfo = (user_id) => {
 		})
 		.then((res) => res.rows);
 };
+
+const deleteFriend = (user_id, friend_id) => {
+	return db
+		.query({
+			text: `
+			DELETE FROM friends WHERE id IN
+			(SELECT f.id
+			FROM users u join friendlists fl on u.id = fl.user_id
+			join friends f on f.friendlist_id = fl.id
+			WHERE (u.id = $1 and f.friend_id = $2) or (u.id = $2 and f.friend_id = $1))
+			RETURNING *;`,
+			values: [user_id, friend_id],
+			name: 'delete_friend'
+		})
+		.then((res) => res.rows);
+};
+
+const addFriend = (user_id, friend_id) => {
+	db.query({
+		text: `INSERT INTO friends (friend_id, friendlist_id)
+		SELECT 8,
+		fl.id FROM friendlists fl join friends f on fl.id = f.friendlist_id
+		WHERE fl.user_id = 7 RETURNING *;`,
+		values: [user_id, friend_id],
+		name: 'add_friend'
+	}).then((res) => res.rows);
+};
+
+module.exports = {getUserInfo, getFriendInfo, deleteFriend, addFriend};

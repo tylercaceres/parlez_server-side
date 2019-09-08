@@ -16,6 +16,17 @@ const createChatroom = (chatroom_type, name, user_id, users_arr, avatar = null) 
 		});
 };
 
+const addChatroomParticipant = (user_id, chatroom_id) => {
+	return db
+		.query({
+			text: `
+		INSERT INTO participants (user_id, chatroom_id) VALUES ($1,$2) RETURNING *`,
+			values: [user_id, chatroom_id],
+			name: 'add_chatroom_participant'
+		})
+		.then((res) => res.rows[0]);
+};
+
 const getActiveChatrooms = (user_id) => {
 	return db
 		.query({
@@ -61,4 +72,37 @@ const updateChatroom = (chatroom_id, name = null, avatar = null) => {
 			name: 'update_chatroom'
 		})
 		.then((res) => res.rows[0]);
+};
+
+// update --> this toggles the is_admin status
+const updateChatroomParticipant = (user_id, chatroom_id) => {
+	return db.query({
+		text: `UPDATE participants
+		SET is_admin = NOT is_admin
+		WHERE user_id = $1 and chatroom_id = $2
+		RETURNING *`,
+		values: [user_id, chatroom_id],
+		name: 'update_chatroom_participant'
+	});
+};
+
+// delete
+const deleteChatroomParticipant = (user_id, chatroom_id) => {
+	return db.query({
+		text: `DELETE
+		FROM participants
+		WHERE user_id = $1 and chatroom_id = $2
+		RETURNING *`,
+		values: [user_id, chatroom_id],
+		name: 'update_chatroom_participant'
+	});
+};
+
+module.exports = {
+	createChatroom,
+	addChatroomParticipant,
+	getActiveChatrooms,
+	updateChatroom,
+	updateChatroomParticipant,
+	deleteChatroomParticipant
 };
