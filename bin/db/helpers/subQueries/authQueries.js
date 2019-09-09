@@ -11,6 +11,16 @@ const getUserByEmailDB = (email) => {
 		.then((res) => res.rows[0]);
 };
 
+const getUserByUserIdDB = (userid) => {
+	return db
+		.query({
+			text: `SELECT * FROM users WHERE id = $1;`,
+			values: [userid],
+			name: 'get_user_by_id'
+		})
+		.then((res) => res.rows[0]);
+};
+
 //add user
 const addUserDB = (username, email, password) => {
 	return db
@@ -25,4 +35,4 @@ const addUserDB = (username, email, password) => {
 		});
 };
 
-module.exports = {getUserByEmailDB, addUserDB};
+module.exports = {getUserByEmailDB, getUserByUserIdDB, addUserDB};

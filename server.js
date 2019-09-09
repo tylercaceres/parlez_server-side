@@ -24,12 +24,6 @@ app.set("view engine", "ejs");
 app.use(express.static(__dirname + "/public"));
 const session = require("express-session");
 
-// additional set up
-// app.use(
-// 	cors({
-// 		origin: 'http://localhost:3000'
-// 	})
-// );
 app.use(function(req, res, next) {
   res.header("Access-Control-Allow-Origin", "http://localhost:3000"); // update to match the domain you will make the request from
   res.header(
