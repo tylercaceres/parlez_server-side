@@ -88,6 +88,9 @@ const createNewChatroom = async (type, name, creatorUserId, usersArr, avatar = '
 			console.log(`${user} has joined the room`);
 			io.sockets.sockets[participantSockets[user]].join(newChatroomId);
 		});
+		//bot creates message to the entire chatroom
+		//bot emits message to the entire chatroom
+		// io.to(newChatroomId).emit("new chatroom message",*insert bot's message here*)
 	} catch (error) {
 		console.log('Error! :', error);
 	}
@@ -95,8 +98,11 @@ const createNewChatroom = async (type, name, creatorUserId, usersArr, avatar = '
 
 const createNewMessage = async (user_id, chatroom_id, content) => {
 	try {
-		const newChatroomMessageId = await dbQueries.createChatroomMessage(user_id, chatroom_id, content);
-	} catch (error) {}
+		const newChatroomMessage = await dbQueries.createChatroomMessage(user_id, chatroom_id, content);
+		io.to(chatroom_id).emit('new chatroom message');
+	} catch (error) {
+		console.log('Error! :', error);
+	}
 };
 
 // dbQueries.getFriendInfo(1).then((res) => console.log('THE FRIENDLIST FUNCTION:', res));
