@@ -3,7 +3,7 @@ const router = express.Router();
 
 const {
   emailExists,
-  userIdExists,
+  // userIdExists,
   validatePassword,
   addUser
 } = require("../bin/functions/helpers.js");
@@ -34,11 +34,7 @@ router.get("/checkloggedin", async (req, res) => {
     if (!req.session.user_id) {
       throw new Error();
     }
-    const userInfo = await userIdExists(req.session.user_id);
-    if (!userInfo) {
-      throw new Error();
-    }
-    return res.json({ user_id: userInfo.id });
+    return res.json({ user_id: req.session.user_id, logged_in: true });
   } catch (err) {
     return res.json({ error: "Error. You are not logged in." });
   }

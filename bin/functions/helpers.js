@@ -1,9 +1,9 @@
 const bcrypt = require("bcrypt");
 const {
   getUserByEmailDB,
-  getUserByUserIdDB,
+  // getUserByUserIdDB,
   addUserDB
-} = require("../db/helpers/sub-authQueries");
+} = require("../db/helpers/subQueries/authQueries");
 
 const generateHashedPassword = password => {
   return bcrypt.hashSync(password, 10);
@@ -12,20 +12,20 @@ const generateHashedPassword = password => {
 const emailExists = email => {
   return getUserByEmailDB(email).then(result => {
     if (result) {
-      return result;
+      return result.email;
     }
     return false;
   });
 };
 
-const userIdExists = userId => {
-  return getUserByUserIdDB(userId).then(result => {
-    if (result) {
-      return result;
-    }
-    return false;
-  });
-};
+// const userIdExists = userId => {
+//   return getUserByUserIdDB(userId).then(result => {
+//     if (result) {
+//       return result;
+//     }
+//     return false;
+//   });
+// };
 
 const validatePassword = (email, password) => {
   return getUserByEmailDB(email).then(user => {
@@ -49,4 +49,4 @@ const addUser = (username, email, password) => {
   );
 };
 
-module.exports = { addUser, validatePassword, emailExists, userIdExists };
+module.exports = { addUser, validatePassword, emailExists };
