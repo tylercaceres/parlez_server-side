@@ -1,35 +1,38 @@
 const db = require('../../../../db/connection/db');
-const {formatChatroomMessages} = require('../dataFormatter');
+const {formatChatroomMessages, formatSingleMessage} = require('../dataFormatter');
 
-const getAllChatroomMessages = (user_id) => {
+const getAllChatroomMessages = user_id => {
 	return db
 		.query({
-			text: `SELECT *
+			text: `SELECT m.chatroom_id as chatroom_id, m.id as message_id, c.chatroom_type as type, c.name as name, c.avatar as avatar, m.owner_user_id as user_id, m.content as content,
+			m.created_at as created_at, m.is_deleted as deleted, u.username as username
 			FROM messages m JOIN user_message_views umv on umv.message_id = m.id
+			JOIN users u on u.id = m.owner_user_id
 			JOIN chatrooms c on c.id = m.chatroom_id
 			WHERE umv.user_id = $1;
     `,
 			values: [user_id],
 			name: 'get_all_chatroom_messages'
 		})
-		.then((res) => formatChatroomMessages(res.rows));
+		.then(res => formatChatroomMessages(res.rows));
 };
 
-const getSingleChatroomMessage = (message_id) => {
+const getSingleChatroomMessage = message_id => {
 	return db
 		.query({
-			text: `SELECT *
-			FROM messages m JOIN user_message_views umv on umv.message_id = m.id
-			JOIN chatrooms c on c.id = m.chatroom_id
+			text: `SELECT m.chatroom_id as chatroom_id, m.id as message_id, m.owner_user_id as user_id, m.content as content,
+			m.created_at as created_at, m.is_deleted as deleted, u.username as username
+			FROM messages m JOIN chatrooms c on c.id = m.chatroom_id
+			JOIN users u on u.id = m.owner_user_id
 			WHERE m.id = $1;
     `,
 			values: [message_id],
 			name: 'get_all_chatroom_messages'
 		})
-		.then((res) => formatChatroomMessages(res.rows));
+		.then(res => formatSingleMessage(res.rows[0]));
 };
 
-const getRecentChatroomMessages = (user_id) => {
+const getRecentChatroomMessages = user_id => {
 	return db
 		.query({
 			// `text: `SELECT *
@@ -45,7 +48,7 @@ const getRecentChatroomMessages = (user_id) => {
 			values: [user_id],
 			name: 'get_recent_chatroom_messages'
 		})
-		.then((res) => formatChatroomMessages(res.rows));
+		.then(res => formatChatroomMessages(res.rows));
 };
 
 const getChatroomMessages = (user_id, chatroom_id) => {
@@ -60,7 +63,7 @@ const getChatroomMessages = (user_id, chatroom_id) => {
 			values: [user_id, chatroom_id],
 			name: 'get_chatroom_messages'
 		})
-		.then((res) => formatChatroomMessages(res.rows));
+		.then(res => formatChatroomMessages(res.rows));
 };
 
 // delete
@@ -78,7 +81,7 @@ const deleteChatroomMessage = (user_id, chatroom_id, message_id) => {
 			values: [user_id, chatroom_id, message_id],
 			name: 'delete_chatroom_message'
 		})
-		.then((res) => res.rows[0]);
+		.then(res => res.rows[0]);
 };
 
 const createChatroomMessage = (user_id, chatroom_id, content) => {
@@ -92,7 +95,7 @@ const createChatroomMessage = (user_id, chatroom_id, content) => {
 			values: [user_id, chatroom_id, content],
 			name: 'create_chatroom_message'
 		})
-		.then((res) => getSingleChatroomMessage(res.rows[0].message_id));
+		.then(res => getSingleChatroomMessage(res.rows[0].message_id));
 };
 
 module.exports = {

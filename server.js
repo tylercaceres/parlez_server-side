@@ -61,6 +61,8 @@ const participantSockets = {};
 
 // const
 
+dbQueries.getFriendInfo(253).then(res => console.log('FRIENDS:', res));
+
 // dbQueries.getFriendInfo(1).then((res) => console.log('THE FRIENDLIST FUNCTION:', res));
 // ********** FUNCTIONS FOR SOCKETS **********
 
@@ -101,6 +103,7 @@ io.on('connect', socket => {
 	const createNewMessage = async (user_id, chatroom_id, content) => {
 		try {
 			const newChatroomMessage = await dbQueries.createChatroomMessage(user_id, chatroom_id, content);
+			console.log('NEW CHATROOM MESSAGE:', newChatroomMessage);
 			io.to(chatroom_id).emit('new chatroom message', newChatroomMessage);
 		} catch (error) {
 			console.log('Error! :', error);
@@ -174,6 +177,12 @@ io.on('connect', socket => {
 		socket.on('create new chatroom', newChatroomData => {
 			const {type, name, usersArr, avatar} = newChatroomData;
 			createNewChatroom(type, name, socket.userid, usersArr, avatar);
+		});
+
+		socket.on('send message', newMessage => {
+			console.log(newMessage);
+			const {userId, chatroomId, content} = newMessage;
+			createNewMessage(userId, chatroomId, content);
 		});
 
 		socket.on('create new message', newMessageData => {});
