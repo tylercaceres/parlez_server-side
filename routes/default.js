@@ -30,7 +30,7 @@ router.get('/checkloggedin', async (req, res) => {
 			throw new Error();
 		}
 
-		return res.json({msg: 'You have been logged out.'});
+		return res.json({{user_id: req.session.user_id, logged_in: true}});
 	} catch (err) {
 		return res.json({error: 'Error. You are not logged in.'});
 	}
@@ -47,7 +47,6 @@ router.post('/register', async (req, res) => {
 	try {
 		const foundEmail = await emailExists(email);
 		if (foundEmail) {
-			console.log('error2here');
 			throw new Error();
 		}
 		const newUser = await addUser(username, email, password);
