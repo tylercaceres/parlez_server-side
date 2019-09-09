@@ -37,6 +37,7 @@ router.get('/checkloggedin', async (req, res) => {
 		if (!req.session.user_id) {
 			throw new Error();
 		}
+		console.log('something');
 		return res.json({user_id: req.session.user_id, logged_in: true});
 	} catch (err) {
 		return res.json({error: 'Error. You are not logged in.'});
