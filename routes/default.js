@@ -13,7 +13,7 @@ router.post('/login', async (req, res) => {
 			throw new Error();
 		}
 		req.session.user_id = userInfo.id;
-		return res.json({user_id: newUser.id, logged_in: true});
+		return res.json({user_id: userInfo.id, logged_in: true});
 	} catch (err) {
 		return res.json({error: 'Error. Credentials are incorrect.'});
 	}
@@ -30,7 +30,7 @@ router.get('/checkloggedin', async (req, res) => {
 			throw new Error();
 		}
 
-		return res.json({{user_id: req.session.user_id, logged_in: true}});
+		return res.json({user_id: req.session.user_id, logged_in: true});
 	} catch (err) {
 		return res.json({error: 'Error. You are not logged in.'});
 	}

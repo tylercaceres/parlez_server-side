@@ -1,7 +1,7 @@
 // load .env data into process.env
 require('dotenv').config();
 require('util').inspect.defaultOptions.depth = null;
-const cors = require('cors');
+// const cors = require('cors');
 
 // constant setup
 const PORT = process.env.PORT || 3003;
@@ -66,79 +66,78 @@ const participantSockets = {};
  * 											'2' : 'abcdefghijklmnopqrstuvwxyz'}
  */
 
+// ********** FUNCTIONS FOR SOCKETS **********
+const initialLoad = async (user_id) => {
+	try {
+		const activeChatrooms = await dbQueries.getActiveChatrooms(user_id);
+		activeChatrooms.forEach((chatroom) => socket.join(chatroom.chatroom_id));
+		const recentChatroomMessages = await dbQueries.getRecentChatroomMessages(user_id);
+		const friendList = await dbQueries.getFriendInfo(user_id);
+		socket.emit('initial data', recentChatroomMessages, friendList);
+		// io.to(chatroom.chatroom_id).emit('new chatroom joined', `${socket.id} joined room ${chatroom.id}`);
+	} catch (error) {
+		console.log('Error! :', error);
+	}
+};
+
+const createNewChatroom = async (type, name, creatorUserId, usersArr, avatar = '') => {
+	try {
+		const newParticipants = await dbQueries.createChatroom(type, name, creatorUserId, usersArr, avatar);
+		const newChatroomId = newParticipants[0].chatroom_id;
+		usersArr.forEach((user) => {
+			console.log(`${user} has joined the room`);
+			io.sockets.sockets[participantSockets[user]].join(newChatroomId);
+		});
+	} catch (error) {
+		console.log('Error! :', error);
+	}
+};
+
+const createNewMessage = async (user_id, chatroom_id, content) => {
+	try {
+		const newChatroomMessageId = await dbQueries.createChatroomMessage(user_id, chatroom_id, content);
+	} catch (error) {}
+};
+
+// dbQueries.getFriendInfo(1).then((res) => console.log('THE FRIENDLIST FUNCTION:', res));
+// ********** FUNCTIONS FOR SOCKETS **********
+
 // ********************** SOCKETS
 io.on('connect', (socket) => {
-	let currentSocket = participantSockets[socket.userid];
-	if (currentSocket && io.sockets.sockets[currentSocket]) {
-		console.log('currently logged in socket: ', participantSockets[socket.userid]);
-		io.sockets.sockets[currentSocket].disconnect();
-	}
-	participantSockets[socket.userid] = socket.id;
-	console.log('new socket :', participantSockets[socket.userid]);
-	console.log(participantSockets);
-	// // send most recent data to socket ********************
-	// const initialLoad = async (user_id) => {
-	// 	try {
-	// 		const recentChatroomMessages = await getRecentChatroomMessages(user_id);
-	// 		console.log(recentChatroomMessages);
-	// 		socket.emit('initial data', recentChatroomMessages);
-	// 		const activeChatrooms = await getActiveChatrooms(user_id);
-	// 		// console.log(activeChatrooms);
-	// 		activeChatrooms.forEach((chatroom) => {
-	// 			socket.join(chatroom.chatroom_id);
-	// 			io.to(chatroom.chatroom_id).emit('new chatroom joined', `${socket.id} joined room ${chatroom.id}`);
-	// 		});
-	// 	} catch (error) {
-	// 		console.log('Error! :', error);
-	// 	}
-	// };
-	// initialLoad(4);
-	// // create chatroom request ********************
-	// const createNewChatroom = async (type, name, creatorUserId, usersArr, avatar = '') => {
-	// 	try {
-	// 		const newParticipants = await createChatroom(type, name, creatorUserId, usersArr, avatar);
-	// 		//loop through socket IDs, make them join the room **********
-	// 		/**
-	// 		 * TODO: make functionality work
-	// 		 */
-	// 		usersArr.forEach((user) => {
-	// 			console.log(`${user} has joined the room`);
-	// 		});
-	// 		// newParticipants.forEach((chatroom) => {
-	// 		// 	socket.join(chatroom);
-	// 		// });
-	// 	} catch (error) {
-	// 		console.log('Error! :', error);
-	// 	}
-	// };
-	// socket.on('create new room', (data) => {
-	// 	console.log('NEW ROOM DATA:', data);
-	// 	const {type, name, creatorUserId, usersArr, avatar} = data;
-	// 	createNewChatroom(type, name, creatorUserId, usersArr, avatar);
-	// });
-	// .then((res) => socket.emit('initial data provided', res))
-	// .then(
-	// .catch((res) => sockt.emit('initial data provided', 'error'));
-	// getRecentChatroomMessages(4)
-	// 	.then((res) => socket.emit('initial data provided', res))
-	// 	.then(
-	// 	.catch((res) => sockt.emit('initial data provided', 'error'));
-	// console.log(Object.keys(socket.request.headers));
-	// console.log(socket.request.headers);
-	// createChatroom('single', 'test chatroom single 1', 2, [1, 2, 3, 4, 5])
-	// 	.then((res) => socket.emit('here is the msg', res))
-	// 	.catch((err) => console.log('error msg:', err));
-	// if (socket.handshake.session.email) {
-	// 	socketIdToEmail[socket.id] = socket.handshake.session.email;
-	// }
-	// socket.on('join room', () => {
-	// 	getMessages(1, 1).then((data) =>
-	// 		socket.emit('sending new single message', data)
-	// 	);
-	// });
-	// socket.on('poop', ({user, chatroom, content}) => {
-	// 	appendMessage(user, chatroom, content).then((data) =>
-	// 		socket.emit('poop2', data)
-	// 	);
-	// });
+	socket.on('initialize', (data) => {
+		socket.userid = data.userid;
+		let currentSocket = participantSockets[socket.userid];
+		if (currentSocket && io.sockets.sockets[currentSocket]) {
+			console.log('currently logged in socket: ', participantSockets[currentSocket]);
+			//send a message to the client about to be disconnected (pop up saying they got disconnected, etc)
+			io.to(currentSocket).emit('to be disconnected');
+			//potentially add in a timeout? (delay)
+			io.sockets.sockets[currentSocket].disconnect();
+		}
+		participantSockets[socket.userid] = socket.id;
+		console.log('new socket :', participantSockets[socket.userid]);
+		console.log(participantSockets);
+
+		initialLoad(socket.userid); //function to send initial data
+
+		socket.on('create new chatroom', (newChatroomData) => {
+			const {type, name, usersArr, avatar} = newChatroomData;
+			createNewChatroom(type, name, socket.userid, usersArr, avatar);
+		});
+
+		socket.on('create new message', (newMessageData) => {});
+	});
+
+	// socket.on("", =>{
+
+	// })
+	// socket.on("", =>{
+
+	// })
+	// socket.on("", =>{
+
+	// })
+	// socket.on("", =>{
+
+	// })
 });

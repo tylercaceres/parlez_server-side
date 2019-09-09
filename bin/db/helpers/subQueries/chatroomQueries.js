@@ -1,4 +1,4 @@
-const db = require('../../../db/connection/db');
+const db = require('../../../../db/connection/db');
 
 const createChatroom = (chatroom_type, name, user_id, users_arr, avatar = null) => {
 	return db

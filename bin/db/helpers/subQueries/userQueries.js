@@ -1,4 +1,4 @@
-const db = require('../../../db/connection/db');
+const db = require('../../../../db/connection/db');
 
 const getUserInfo = (user_id) => {
 	return db
@@ -16,10 +16,10 @@ const getUserInfo = (user_id) => {
 const getFriendInfo = (user_id) => {
 	return db
 		.query({
-			text: `SELECT *
+			text: `SELECT f.friend_id as id, u.email as email, u.username as username, u.avatar as avatar, u.status as status
 			FROM friendlists fl join friends f on fl.id = f.friendlist_id
 			join users u on u.id = f.friend_id
-			where fl.user_id = $1 and f.invitation_accepted_at IS NOT NULL
+			where fl.user_id = $1 and f.invitation_accepted_at IS NOT NULL and u.is_active = true
 			;`,
 			values: [user_id],
 			name: 'get_friend_list'

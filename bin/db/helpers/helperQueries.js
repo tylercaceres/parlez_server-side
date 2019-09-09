@@ -1,4 +1,3 @@
-// const db = require('../../../db/connection/db');
 const {
 	getAllChatroomMessages,
 	getSingleChatroomMessage,
@@ -6,7 +5,7 @@ const {
 	getChatroomMessages,
 	deleteChatroomMessage,
 	createChatroomMessage
-} = require('./sub-chatroomMessageQueries');
+} = require('./subQueries/chatroomMessageQueries');
 
 const {
 	createChatroom,
@@ -15,11 +14,15 @@ const {
 	updateChatroom,
 	updateChatroomParticipant,
 	deleteChatroomParticipant
-} = require('./sub-chatroomQueries');
+} = require('./subQueries/chatroomQueries');
 
-const {getUserInfo, getFriendInfo, deleteFriend, addFriend} = require('./sub-userQueries');
+const {getUserInfo, getFriendInfo, deleteFriend, addFriend} = require('./subQueries/userQueries');
+
+const {getUserByEmailDB, addUserDB} = require('./subQueries/authQueries');
 
 module.exports = {
+	getUserByEmailDB,
+	addUserDB,
 	getAllChatroomMessages,
 	getSingleChatroomMessage,
 	getRecentChatroomMessages,

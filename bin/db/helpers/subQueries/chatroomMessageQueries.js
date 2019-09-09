@@ -1,5 +1,5 @@
-const db = require('../../../db/connection/db');
-const {formatChatroomMessages} = require('./dataFormatter');
+const db = require('../../../../db/connection/db');
+const {formatChatroomMessages} = require('../dataFormatter');
 
 const getAllChatroomMessages = (user_id) => {
 	return db

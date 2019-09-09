@@ -1,5 +1,5 @@
 const bcrypt = require('bcrypt');
-const {getUserByEmailDB, addUserDB} = require('../db/helpers/sub-authQueries');
+const {getUserByEmailDB, addUserDB} = require('../db/helpers/subQueries/authQueries');
 
 const generateHashedPassword = (password) => {
 	return bcrypt.hashSync(password, 10);
