@@ -89,7 +89,7 @@ CREATE TABLE IF NOT EXISTS messages (
   chatroom_id INTEGER NOT NULL REFERENCES chatrooms (id),
   content VARCHAR(255) NOT NULL,
   is_deleted BOOLEAN DEFAULT false NOT NULL,
-  created_at timestamp,
+  created_at timestamp DEFAULT NOW(),
   updated_at timestamp DEFAULT NOW()
 );
 
