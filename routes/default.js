@@ -1,51 +1,60 @@
-const db = require('../db/connection/db.js');
 const express = require('express');
 const router = express.Router();
-const {
-  generateHashedPassword,
-  usernameExists,
-  emailExists,
-  validatePassword,
-  generateCookie,
-  addUser
-} = require('../bin/functions/helpers.js');
 
-router.get('/', (req, res) => {
-  res.render('index');
+const {emailExists, validatePassword, addUser} = require('../bin/functions/helpers.js');
+
+router.post('/login', async (req, res) => {
+	const {email, password} = req.body;
+	console.log('email:', email);
+	console.log('password:', password);
+	try {
+		const userInfo = await validatePassword(email, password);
+		if (!userInfo) {
+			throw new Error();
+		}
+		req.session.user_id = userInfo.id;
+		return res.json({user_id: userInfo.id, logged_in: true});
+	} catch (err) {
+		return res.json({error: 'Error. Credentials are incorrect.'});
+	}
 });
 
-router.post('/login', (req, res) => {});
-router.post('/logout', (req, res) => {});
-router.post('/register', (req, res) => {
-  const {username, email, password, confirmPassword} = req.body;
+router.get('/logout', (req, res) => {
+	req.session.user_id = null;
+	return res.json({msg: 'You have been logged out.'});
+});
 
-  if (username === '' || email === '' || password === '' || confirmPassword === '') {
-    req.flash('error', 'cannot leave anything blank you little shit');
-    return res.redirect('/');
-  }
-  if (password !== confirmPassword) {
-    req.flash('error', 'passwords are not the same');
-    return res.redirect('/');
-  }
+router.get('/checkloggedin', async (req, res) => {
+	try {
+		if (!req.session.user_id) {
+			throw new Error();
+		}
 
-  emailExists(email)
-    .then(() => {
-      console.log('enters username exists promise');
-      usernameExists(username);
-    })
-    .then(() => {
-      console.log('enters final promise');
-      addUser(username, email, password);
-      console.log('something was created');
-      req.flash('success', 'created new user in DB');
-      return res.redirect('/');
-    })
-    .catch(() => {
-      console.log('caught here1');
-      req.flash('error', 'username/email aleady exists');
-      console.log('caught here 2');
-      return res.redirect('/');
-    });
+		return res.json({user_id: req.session.user_id, logged_in: true});
+	} catch (err) {
+		return res.json({error: 'Error. You are not logged in.'});
+	}
+});
+
+router.post('/register', async (req, res) => {
+	const {username, email, password, confirmPassword} = req.body;
+	if (username === '' || email === '' || password === '' || confirmPassword === '') {
+		return res.json({error: 'Enter information in all fields.'});
+	}
+	if (password !== confirmPassword) {
+		return res.json({error: 'Passwords must match.'});
+	}
+	try {
+		const foundEmail = await emailExists(email);
+		if (foundEmail) {
+			throw new Error();
+		}
+		const newUser = await addUser(username, email, password);
+		req.session.user_id = newUser.id;
+		return res.json({user_id: newUser.id, logged_in: true});
+	} catch (err) {
+		return res.json({error: 'Error. Please retry'});
+	}
 });
 
 module.exports = router;

@@ -19,188 +19,201 @@ db.connect();
 // additional server set up
 const morgan = require("morgan");
 app.use(morgan("dev"));
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ extended: true }));
 app.set("view engine", "ejs");
 app.use(express.static(__dirname + "/public"));
+const session = require("express-session");
 
 // additional set up
-const session = require("express-session")({
-  secret: "lhl parlez",
-  resave: true,
-  saveUninitialized: true
+// app.use(
+// 	cors({
+// 		origin: 'http://localhost:3000'
+// 	})
+// );
+app.use(function(req, res, next) {
+  res.header("Access-Control-Allow-Origin", "http://localhost:3000"); // update to match the domain you will make the request from
+  res.header(
+    "Access-Control-Allow-Headers",
+    "Origin, X-Requested-With, Content-Type, Accept"
+  );
+  res.header("Access-Control-Allow-Methods", "GET,PUT,POST,DELETE");
+  res.header("Access-Control-Allow-Credentials", true);
+  next();
 });
-app.use(session);
-const sharedsession = require("express-socket.io-session");
-io.use(
-  sharedsession(session, {
-    autoSave: true
+
+app.use(
+  session({
+    secret: "lhl parlez",
+    resave: true,
+    saveUninitialized: true
   })
 );
 
-app.get("/", (req, res) => {
-  req.session.user_id = "4";
-  res.send("hello world");
-});
-
-// DB functions
-const {
-  createChatroom,
-  getAllChatroomMessages,
-  getRecentChatroomMessages,
-  getActiveChatrooms
-} = require("./bin/db/helpers/helperQueries");
+// ***** routes *****
+const defaultRoutes = require("./routes/default");
+app.use("/auth/", defaultRoutes);
 
 // server initialize
 app.listen(PORT, () => console.log(`Running on port ${PORT}`));
 server.listen(8080);
 
-app.use((req, res, next) => {
-  res.locals.user = req.session.user_id;
-  next();
-});
-
-app.get("/", (req, res) => {
-  res.render("index");
-});
+const dbQueries = require("./bin/db/helpers/helperQueries");
 
 // global object to store the latest socket of a user
 const participantSockets = {};
 
 /**
- * participant 						sockets = {
- * 												'1' : 'xyz1234___1234',
- * 												'2' : 'abcdefghijklmnopqrstuvwxyz'}
+ * !socket global object
+ * participantSockets = {'1' : 'xyz1234___1234',
+ * 											'2' : 'abcdefghijklmnopqrstuvwxyz'}
  */
+
+// ********** FUNCTIONS FOR SOCKETS **********
+const initialLoad = async user_id => {
+  try {
+    const activeChatrooms = await dbQueries.getActiveChatrooms(user_id);
+    activeChatrooms.forEach(chatroom => socket.join(chatroom.chatroom_id));
+    const recentChatroomMessages = await dbQueries.getRecentChatroomMessages(
+      user_id
+    );
+    const friendList = await dbQueries.getFriendInfo(user_id);
+    socket.emit("initial message data", recentChatroomMessages);
+    socket.emit("friendlist data", friendList);
+
+    // io.to(chatroom.chatroom_id).emit('new chatroom joined', `${socket.id} joined room ${chatroom.id}`);
+  } catch (error) {
+    console.log("Error! :", error);
+  }
+};
+
+const createNewChatroom = async (
+  type,
+  name,
+  creatorUserId,
+  usersArr,
+  avatar = ""
+) => {
+  try {
+    const newParticipants = await dbQueries.createChatroom(
+      type,
+      name,
+      creatorUserId,
+      usersArr,
+      avatar
+    );
+    const newChatroomId = newParticipants[0].chatroom_id;
+    usersArr.forEach(user => {
+      console.log(`${user} has joined the room`);
+      io.sockets.sockets[participantSockets[user]].join(newChatroomId);
+    });
+    //bot creates message to the entire chatroom
+    //bot emits message to the entire chatroom
+    // io.to(newChatroomId).emit("new chatroom message",*insert bot's message here*)
+  } catch (error) {
+    console.log("Error! :", error);
+  }
+};
+
+const createNewMessage = async (user_id, chatroom_id, content) => {
+  try {
+    const newChatroomMessage = await dbQueries.createChatroomMessage(
+      user_id,
+      chatroom_id,
+      content
+    );
+    io.to(chatroom_id).emit("new chatroom message", newChatroomMessage);
+  } catch (error) {
+    console.log("Error! :", error);
+  }
+};
+
+const deleteMessage = async (user_id, chatroom_id, message_id) => {
+  try {
+    const deletedChatroomMessage = await dbQueries.deleteChatroomMessage(
+      user_id,
+      chatroom_id,
+      message_id
+    );
+    socket.emit("delete my message", deleteChatroomMessage);
+    const updateContentMessage = await dbQueries.getSingleChatroomMessage(
+      deletedChatroomMessage.message_id
+    );
+    socket.to(chatroom_id).emit("update message content", updateContentMessage);
+  } catch (error) {
+    console.log("Error! :", error);
+  }
+};
+
+const deleteViewableMessages = async (user_id, chatroom_id) => {
+  try {
+    //note: this only needs to delete the messages from the database
+    //
+    const removedMessages = await dbQueries.leaveChatroomRemoveMessages(
+      user_id,
+      chatroom_id
+    );
+  } catch (error) {
+    console.log("Error! :", error);
+  }
+};
+
+const leaveChatroom = async (user_id, chatroom_id) => {
+  try {
+    console.log("eleave chatroom");
+  } catch (error) {
+    console.log("Error! :", error);
+  }
+};
+
+const addFriend = async friend_id => {
+  try {
+    const friendlist = await dbQueries.addFriend(socket.userid, friend_id);
+    socket.emit("friendlist data", friendlist);
+  } catch (error) {
+    console.log("Error! :", error);
+  }
+};
+
+const deleteFriend = async friend_id => {
+  try {
+    const friendlist = await dbQueries.deleteFriend(socket.userid, friend_id);
+    socket.emit("friendlist data", friendlist);
+  } catch (error) {
+    console.log("Error! :", error);
+  }
+};
+
+// const
+
+// dbQueries.getFriendInfo(1).then((res) => console.log('THE FRIENDLIST FUNCTION:', res));
+// ********** FUNCTIONS FOR SOCKETS **********
 
 // ********************** SOCKETS
 io.on("connect", socket => {
-  // console.log(socket.handshake.session.email);
-  // // socket.userid = socket.;
-  // socket.handshake.session.email;
-  // let currentSocket = participantSockets[socket.userid];
-  // console.log('username has been provided');
-  // console.log('socket userid:', socket.userid);
-  // if (currentSocket && io.sockets.sockets[currentSocket]) {
-  // 	console.log('currently logged in socket: ', participantSockets[socket.userid]);
-  // 	io.sockets.sockets[currentSocket].disconnect();
-  // }
-  // participantSockets[socket.userid] = socket.id;
-  // console.log('new socket :', participantSockets[socket.userid]);
-  // console.log(participantSockets);
-
-  // send most recent data to socket ********************
-  const initialLoad = async user_id => {
-    try {
-      const recentChatroomMessages = await getRecentChatroomMessages(user_id);
-      // console.log(recentChatroomMessages);
-      socket.emit("initial data", recentChatroomMessages);
-      const activeChatrooms = await getActiveChatrooms(user_id);
-      // console.log(activeChatrooms);
-      activeChatrooms.forEach(chatroom => {
-        socket.join(chatroom.chatroom_id);
-        io.to(chatroom.chatroom_id).emit(
-          "new chatroom joined",
-          `${socket.id} joined room ${chatroom.id}`
-        );
-      });
-    } catch (error) {
-      console.log("Error! :", error);
-    }
-  };
-  // initialLoad(1);
-
-  socket.on("initialize", user_id => {
-    console.log(user_id);
-    initialLoad(user_id);
-  });
-
-  // send most recent data to socket ********************
-  // const initialLoad = async (user_id) => {
-  // 	try {
-  // 		const recentChatroomMessages = await getRecentChatroomMessages(user_id);
-  // 		console.log(recentChatroomMessages);
-  // 		socket.emit('initial data', recentChatroomMessages);
-  // 		const activeChatrooms = await getActiveChatrooms(user_id);
-  // 		// console.log(activeChatrooms);
-  // 		activeChatrooms.forEach((chatroom) => {
-  // 			socket.join(chatroom.chatroom_id);
-  // 			io.to(chatroom.chatroom_id).emit('new chatroom joined', `${socket.id} joined room ${chatroom.id}`);
-  // 		});
-  // 	} catch (error) {
-  // 		console.log('Error! :', error);
-  // 	}
-  // };
-  // initialLoad(4);
-
-  // create chatroom request ********************
-  const createNewChatroom = async (
-    type,
-    name,
-    creatorUserId,
-    usersArr,
-    avatar = ""
-  ) => {
-    try {
-      const newParticipants = await createChatroom(
-        type,
-        name,
-        creatorUserId,
-        usersArr,
-        avatar
+  socket.on("initialize", data => {
+    socket.userid = data.userid;
+    let currentSocket = participantSockets[socket.userid];
+    if (currentSocket && io.sockets.sockets[currentSocket]) {
+      console.log(
+        "currently logged in socket: ",
+        participantSockets[currentSocket]
       );
-      //loop through socket IDs, make them join the room **********
-      /**
-       * TODO: make functionality work
-       */
-      usersArr.forEach(user => {
-        console.log(`${user} has joined the room`);
-      });
-
-      // newParticipants.forEach((chatroom) => {
-      // 	socket.join(chatroom);
-      // });
-    } catch (error) {
-      console.log("Error! :", error);
+      //send a message to the client about to be disconnected (pop up saying they got disconnected, etc)
+      io.to(currentSocket).emit("to be disconnected");
+      //potentially add in a timeout? (delay)
+      io.sockets.sockets[currentSocket].disconnect();
     }
-  };
+    participantSockets[socket.userid] = socket.id;
+    console.log("new socket :", participantSockets[socket.userid]);
+    console.log(participantSockets);
 
-  socket.on("create new room", data => {
-    console.log("NEW ROOM DATA:", data);
-    const { type, name, creatorUserId, usersArr, avatar } = data;
-    createNewChatroom(type, name, creatorUserId, usersArr, avatar);
+    initialLoad(socket.userid); //function to send initial data
+
+    socket.on("create new chatroom", newChatroomData => {
+      const { type, name, usersArr, avatar } = newChatroomData;
+      createNewChatroom(type, name, socket.userid, usersArr, avatar);
+    });
+
+    socket.on("create new message", newMessageData => {});
   });
-
-  //receiving new message from chatroom:
-  socket.on("send message", msg => {
-    console.log("NEW MSG", msg);
-  });
-
-  // .then((res) => socket.emit('initial data provided', res))
-  // .then(
-  // .catch((res) => sockt.emit('initial data provided', 'error'));
-
-  // getRecentChatroomMessages(4)
-  // 	.then((res) => socket.emit('initial data provided', res))
-  // 	.then(
-  // 	.catch((res) => sockt.emit('initial data provided', 'error'));
-
-  // console.log(Object.keys(socket.request.headers));
-  // console.log(socket.request.headers);
-  // createChatroom('single', 'test chatroom single 1', 2, [1, 2, 3, 4, 5])
-  // 	.then((res) => socket.emit('here is the msg', res))
-  // 	.catch((err) => console.log('error msg:', err));
-
-  // if (socket.handshake.session.email) {
-  // 	socketIdToEmail[socket.id] = socket.handshake.session.email;
-  // }
-  // socket.on('join room', () => {
-  // 	getMessages(1, 1).then((data) =>
-  // 		socket.emit('sending new single message', data)
-  // 	);
-  // });
-  // socket.on('poop', ({user, chatroom, content}) => {
-  // 	appendMessage(user, chatroom, content).then((data) =>
-  // 		socket.emit('poop2', data)
-  // 	);
-  // });
 });
