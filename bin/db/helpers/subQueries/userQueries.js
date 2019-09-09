@@ -44,14 +44,16 @@ const deleteFriend = (user_id, friend_id) => {
 };
 
 const addFriend = (user_id, friend_id) => {
-	db.query({
-		text: `INSERT INTO friends (friend_id, friendlist_id)
+	return db
+		.query({
+			text: `INSERT INTO friends (friend_id, friendlist_id)
 		SELECT $2,
 		id FROM friendlists
 		WHERE user_id = $1 RETURNING *;`,
-		values: [user_id, friend_id],
-		name: 'add_friend'
-	}).then((res) => res.rows);
+			values: [user_id, friend_id],
+			name: 'add_friend'
+		})
+		.then((res) => getFriendInfo(user_id));
 };
 
 module.exports = {getUserInfo, getFriendInfo, deleteFriend, addFriend};

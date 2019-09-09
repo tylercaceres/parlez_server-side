@@ -11,7 +11,7 @@ const createChatroom = (chatroom_type, name, user_id, users_arr, avatar = null) 
 			values: [chatroom_type, name, avatar, user_id, users_arr],
 			name: 'create_chatroom'
 		})
-		.then((res) => {
+		.then(res => {
 			console.log(res.rows);
 		});
 };
@@ -24,10 +24,10 @@ const addChatroomParticipant = (user_id, chatroom_id) => {
 			values: [user_id, chatroom_id],
 			name: 'add_chatroom_participant'
 		})
-		.then((res) => res.rows[0]);
+		.then(res => res.rows[0]);
 };
 
-const getActiveChatrooms = (user_id) => {
+const getActiveChatrooms = user_id => {
 	return db
 		.query({
 			text: `SELECT *
@@ -37,7 +37,7 @@ const getActiveChatrooms = (user_id) => {
 			values: [user_id],
 			name: 'get_active_chatrooms'
 		})
-		.then((res) => res.rows);
+		.then(res => res.rows);
 };
 
 const updateChatroom = (chatroom_id, name = null, avatar = null) => {
@@ -71,7 +71,7 @@ const updateChatroom = (chatroom_id, name = null, avatar = null) => {
 			values: queryValues,
 			name: 'update_chatroom'
 		})
-		.then((res) => res.rows[0]);
+		.then(res => res.rows[0]);
 };
 
 // update --> this toggles the is_admin status
@@ -98,11 +98,26 @@ const deleteChatroomParticipant = (user_id, chatroom_id) => {
 	});
 };
 
+const deleteViewableMessages = (user_id, chatroom_id) => {
+	return db
+		.query({
+			text: `DELETE
+		FROM user_message_views
+		WHERE user_id = $1 and message_id IN (
+		SELECT id FROM messages WHERE chatroom_id = $2) RETURNING *;
+		`,
+			values: [user_id, chatroom_id],
+			name: 'leave_chatroom_remove_messages'
+		})
+		.then(res => res.rows);
+};
+
 module.exports = {
 	createChatroom,
 	addChatroomParticipant,
 	getActiveChatrooms,
 	updateChatroom,
 	updateChatroomParticipant,
-	deleteChatroomParticipant
+	deleteChatroomParticipant,
+	deleteViewableMessages
 };

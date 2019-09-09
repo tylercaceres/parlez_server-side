@@ -13,7 +13,8 @@ const {
 	getActiveChatrooms,
 	updateChatroom,
 	updateChatroomParticipant,
-	deleteChatroomParticipant
+	deleteChatroomParticipant,
+	deleteViewableMessages
 } = require('./subQueries/chatroomQueries');
 
 const {getUserInfo, getFriendInfo, deleteFriend, addFriend} = require('./subQueries/userQueries');
@@ -38,5 +39,6 @@ module.exports = {
 	getUserInfo,
 	getFriendInfo,
 	deleteFriend,
-	addFriend
+	addFriend,
+	deleteViewableMessages
 };

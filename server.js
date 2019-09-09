@@ -67,13 +67,15 @@ const participantSockets = {};
  */
 
 // ********** FUNCTIONS FOR SOCKETS **********
-const initialLoad = async (user_id) => {
+const initialLoad = async user_id => {
 	try {
 		const activeChatrooms = await dbQueries.getActiveChatrooms(user_id);
-		activeChatrooms.forEach((chatroom) => socket.join(chatroom.chatroom_id));
+		activeChatrooms.forEach(chatroom => socket.join(chatroom.chatroom_id));
 		const recentChatroomMessages = await dbQueries.getRecentChatroomMessages(user_id);
 		const friendList = await dbQueries.getFriendInfo(user_id);
-		socket.emit('initial data', recentChatroomMessages, friendList);
+		socket.emit('initial message data', recentChatroomMessages);
+		socket.emit('friendlist data', friendList);
+
 		// io.to(chatroom.chatroom_id).emit('new chatroom joined', `${socket.id} joined room ${chatroom.id}`);
 	} catch (error) {
 		console.log('Error! :', error);
@@ -84,7 +86,7 @@ const createNewChatroom = async (type, name, creatorUserId, usersArr, avatar = '
 	try {
 		const newParticipants = await dbQueries.createChatroom(type, name, creatorUserId, usersArr, avatar);
 		const newChatroomId = newParticipants[0].chatroom_id;
-		usersArr.forEach((user) => {
+		usersArr.forEach(user => {
 			console.log(`${user} has joined the room`);
 			io.sockets.sockets[participantSockets[user]].join(newChatroomId);
 		});
@@ -99,18 +101,67 @@ const createNewChatroom = async (type, name, creatorUserId, usersArr, avatar = '
 const createNewMessage = async (user_id, chatroom_id, content) => {
 	try {
 		const newChatroomMessage = await dbQueries.createChatroomMessage(user_id, chatroom_id, content);
-		io.to(chatroom_id).emit('new chatroom message');
+		io.to(chatroom_id).emit('new chatroom message', newChatroomMessage);
 	} catch (error) {
 		console.log('Error! :', error);
 	}
 };
 
+const deleteMessage = async (user_id, chatroom_id, message_id) => {
+	try {
+		const deletedChatroomMessage = await dbQueries.deleteChatroomMessage(user_id, chatroom_id, message_id);
+		socket.emit('delete my message', deleteChatroomMessage);
+		const updateContentMessage = await dbQueries.getSingleChatroomMessage(deletedChatroomMessage.message_id);
+		socket.to(chatroom_id).emit('update message content', updateContentMessage);
+	} catch (error) {
+		console.log('Error! :', error);
+	}
+};
+
+const deleteViewableMessages = async (user_id, chatroom_id) => {
+	try {
+		//note: this only needs to delete the messages from the database
+		//
+		const removedMessages = await dbQueries.leaveChatroomRemoveMessages(user_id, chatroom_id);
+	} catch (error) {
+		console.log('Error! :', error);
+	}
+};
+
+const leaveChatroom = async (user_id, chatroom_id) => {
+	try {
+		console.log('eleave chatroom');
+	} catch (error) {
+		console.log('Error! :', error);
+	}
+};
+
+const addFriend = async friend_id => {
+	try {
+		const friendlist = await dbQueries.addFriend(socket.userid, friend_id);
+		socket.emit('friendlist data', friendlist);
+	} catch (error) {
+		console.log('Error! :', error);
+	}
+};
+
+const deleteFriend = async friend_id => {
+	try {
+		const friendlist = await dbQueries.deleteFriend(socket.userid, friend_id);
+		socket.emit('friendlist data', friendlist);
+	} catch (error) {
+		console.log('Error! :', error);
+	}
+};
+
+// const
+
 // dbQueries.getFriendInfo(1).then((res) => console.log('THE FRIENDLIST FUNCTION:', res));
 // ********** FUNCTIONS FOR SOCKETS **********
 
 // ********************** SOCKETS
-io.on('connect', (socket) => {
-	socket.on('initialize', (data) => {
+io.on('connect', socket => {
+	socket.on('initialize', data => {
 		socket.userid = data.userid;
 		let currentSocket = participantSockets[socket.userid];
 		if (currentSocket && io.sockets.sockets[currentSocket]) {
@@ -126,24 +177,11 @@ io.on('connect', (socket) => {
 
 		initialLoad(socket.userid); //function to send initial data
 
-		socket.on('create new chatroom', (newChatroomData) => {
+		socket.on('create new chatroom', newChatroomData => {
 			const {type, name, usersArr, avatar} = newChatroomData;
 			createNewChatroom(type, name, socket.userid, usersArr, avatar);
 		});
 
-		socket.on('create new message', (newMessageData) => {});
+		socket.on('create new message', newMessageData => {});
 	});
-
-	// socket.on("", =>{
-
-	// })
-	// socket.on("", =>{
-
-	// })
-	// socket.on("", =>{
-
-	// })
-	// socket.on("", =>{
-
-	// })
 });
