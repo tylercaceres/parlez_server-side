@@ -129,9 +129,9 @@ io.on("connect", socket => {
 
   const deleteViewableMessages = async (user_id, chatroom_id) => {
     try {
-      //note: this only needs to delete the messages from the database
-      //
-      const removedMessages = await dbQueries.leaveChatroomRemoveMessages(user_id, chatroom_id);
+      const deleted = await dbQueries.deleteViewableMessages(user_id, chatroom_id);
+      console.log("the messages that have been deleted from views", deleted);
+      socket.emit("delete viewable messages", chatroom_id);
     } catch (error) {
       console.log("Error! :", error);
     }
@@ -139,7 +139,7 @@ io.on("connect", socket => {
 
   const leaveChatroom = async (user_id, chatroom_id) => {
     try {
-      console.log("eleave chatroom");
+      console.log("leave chatroom");
     } catch (error) {
       console.log("Error! :", error);
     }
@@ -194,6 +194,11 @@ io.on("connect", socket => {
     socket.on("delete msg", data => {
       console.log(data);
       deleteMessage(socket.userid, data.msg_id, data.creatorId);
+    });
+
+    socket.on("delete chatroom button", chatroom_id => {
+      console.log("I AM HERE. DELETE CHATROOM BUTTON.", chatroom_id);
+      deleteViewableMessages(socket.userid, chatroom_id);
     });
 
     // 	socket.on('create new message', newMessageData => {});
