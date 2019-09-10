@@ -3,7 +3,8 @@ const bcrypt = require('bcrypt');
 const {
 	getUserByEmailDB,
 	// getUserByUserIdDB,
-	addUserDB
+	addUserDB,
+	createFriendlistDB
 } = require('../db/helpers/subQueries/authQueries');
 
 const generateHashedPassword = password => {
@@ -52,4 +53,15 @@ const addUser = (username, email, password) => {
 	});
 };
 
-module.exports = {addUser, validatePassword, emailExists};
+const createFriendlist = id => {
+	return createFriendlistDB(id).then(newFriendlist => {
+		console.log('friendlist creator');
+		if (newFriendlist) {
+			console.log('HERE ********', newFriendlist);
+			return newFriendlist;
+		}
+		throw new Error();
+	});
+};
+
+module.exports = {addUser, validatePassword, emailExists, createFriendlist};

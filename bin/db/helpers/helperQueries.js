@@ -20,12 +20,12 @@ const {
 
 const {getUserInfo, getFriendInfo, deleteFriend, addFriend, getNewFriendInfo} = require('./subQueries/userQueries');
 
-const {getUserByEmailDB, getUserByUserIdDB, addUserDB, createFriendlist} = require('./subQueries/authQueries');
+const {getUserByEmailDB, getUserByUserIdDB, addUserDB, createFriendlistDB} = require('./subQueries/authQueries');
 
 module.exports = {
 	getUserByEmailDB,
 	getUserByUserIdDB,
-	createFriendlist,
+	createFriendlistDB,
 	addUserDB,
 	getAllChatroomMessages,
 	getSingleChatroomMessage,

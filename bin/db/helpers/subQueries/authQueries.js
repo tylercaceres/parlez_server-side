@@ -21,16 +21,18 @@ const getUserByUserIdDB = userid => {
 		.then(res => res.rows[0]);
 };
 
-const createFriendlist = id => {
+const createFriendlistDB = id => {
 	console.log('does this happen at least', id);
+	console.log(typeof id);
 	return db
 		.query({
-			text: `INSERT INTO friendlists (user_id) VALUES ($1) RETURNING *;`,
+			text: `
+			INSERT INTO friendlists (user_id) VALUES ($1) RETURNING *;`,
 			values: [id],
-			name: create_friend_list
+			name: 'create_friend_list'
 		})
 		.then(res => {
-			console.log(res.rows[0]);
+			console.log('I AM HERE NOW ********8** AFTER FRIENDLIST*****');
 			return res.rows[0];
 		});
 };
@@ -44,7 +46,7 @@ const addUserDB = (username, email, password) => {
 			values: [username, email, password],
 			name: 'add_user_db'
 		})
-		.then(res => createFriendlist(res.rows[0].id));
+		.then(res => res.rows[0]);
 };
 
-module.exports = {getUserByEmailDB, getUserByUserIdDB, addUserDB, createFriendlist};
+module.exports = {getUserByEmailDB, getUserByUserIdDB, addUserDB, createFriendlistDB};
