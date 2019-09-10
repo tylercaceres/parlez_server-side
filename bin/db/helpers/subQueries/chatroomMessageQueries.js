@@ -89,7 +89,7 @@ const deleteChatroomMessageViews = (user_id, message_id) => {
   return db
     .query({
       text: `
-      DELETE FROM user_message_views WHERE user_id = $1 and message_id = $2 RETURNING *;
+      DELETE FROM user_message_views WHERE user_id = $1 and message_id = $2;
 			`,
       values: [user_id, message_id],
       name: "delete_chatroom_message_views"
