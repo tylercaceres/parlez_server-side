@@ -18,7 +18,13 @@ const {
   deleteViewableMessages
 } = require("./subQueries/chatroomQueries");
 
-const { getUserInfo, getFriendInfo, deleteFriend, addFriend } = require("./subQueries/userQueries");
+const {
+  getUserInfo,
+  getFriendInfo,
+  deleteFriend,
+  addFriend,
+  getNewFriendInfo
+} = require("./subQueries/userQueries");
 
 const { getUserByEmailDB, addUserDB } = require("./subQueries/authQueries");
 
@@ -42,5 +48,6 @@ module.exports = {
   deleteFriend,
   addFriend,
   deleteViewableMessages,
-  deleteChatroomMessageViews
+  deleteChatroomMessageViews,
+  getNewFriendInfo
 };

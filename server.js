@@ -26,7 +26,10 @@ const session = require("express-session");
 
 app.use(function(req, res, next) {
   res.header("Access-Control-Allow-Origin", "http://localhost:3000"); // update to match the domain you will make the request from
-  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+  res.header(
+    "Access-Control-Allow-Headers",
+    "Origin, X-Requested-With, Content-Type, Accept"
+  );
   res.header("Access-Control-Allow-Methods", "GET,PUT,POST,DELETE");
   res.header("Access-Control-Allow-Credentials", true);
   next();
@@ -73,7 +76,9 @@ io.on("connect", socket => {
     try {
       const activeChatrooms = await dbQueries.getActiveChatrooms(user_id);
       activeChatrooms.forEach(chatroom => socket.join(chatroom.chatroom_id));
-      const recentChatroomMessages = await dbQueries.getRecentChatroomMessages(user_id);
+      const recentChatroomMessages = await dbQueries.getRecentChatroomMessages(
+        user_id
+      );
       const friendList = await dbQueries.getFriendInfo(user_id);
       socket.emit("initial message data", recentChatroomMessages);
       socket.emit("friendlist data", friendList);
@@ -84,9 +89,21 @@ io.on("connect", socket => {
     }
   };
 
-  const createNewChatroom = async (type, name, creatorUserId, usersArr, avatar = "") => {
+  const createNewChatroom = async (
+    type,
+    name,
+    creatorUserId,
+    usersArr,
+    avatar = ""
+  ) => {
     try {
-      const newParticipants = await dbQueries.createChatroom(type, name, creatorUserId, usersArr, avatar);
+      const newParticipants = await dbQueries.createChatroom(
+        type,
+        name,
+        creatorUserId,
+        usersArr,
+        avatar
+      );
       const newChatroomId = newParticipants[0].chatroom_id;
       usersArr.forEach(user => {
         console.log(`${user} has joined the room`);
@@ -102,7 +119,11 @@ io.on("connect", socket => {
 
   const createNewMessage = async (user_id, chatroom_id, content) => {
     try {
-      const newChatroomMessage = await dbQueries.createChatroomMessage(user_id, chatroom_id, content);
+      const newChatroomMessage = await dbQueries.createChatroomMessage(
+        user_id,
+        chatroom_id,
+        content
+      );
       console.log("NEW CHATROOM MESSAGE:", newChatroomMessage);
       io.to(chatroom_id).emit("new chatroom message", newChatroomMessage);
     } catch (error) {
@@ -113,14 +134,21 @@ io.on("connect", socket => {
   const deleteMessage = async (user_id, message_id, creator_id) => {
     console.log("before try");
     try {
-      const deletedChatroomMessage = await dbQueries.deleteChatroomMessage(user_id, message_id);
+      const deletedChatroomMessage = await dbQueries.deleteChatroomMessage(
+        user_id,
+        message_id
+      );
       await dbQueries.deleteChatroomMessageViews(user_id, message_id);
       const deletedMsg = await dbQueries.getSingleChatroomMessage(message_id);
       socket.emit("delete my message", deletedMsg);
       console.log(deletedMsg);
       if (user_id === creator_id) {
-        const updatedDeletedContentMessage = await dbQueries.getSingleChatroomMessage(message_id);
-        socket.to(updatedDeletedContentMessage.chatroom).emit("delete owner message", updatedDeletedContentMessage);
+        const updatedDeletedContentMessage = await dbQueries.getSingleChatroomMessage(
+          message_id
+        );
+        socket
+          .to(updatedDeletedContentMessage.chatroom)
+          .emit("delete owner message", updatedDeletedContentMessage);
       }
     } catch (error) {
       console.log("Error! :", error);
@@ -129,7 +157,10 @@ io.on("connect", socket => {
 
   const deleteViewableMessages = async (user_id, chatroom_id) => {
     try {
-      const deleted = await dbQueries.deleteViewableMessages(user_id, chatroom_id);
+      const deleted = await dbQueries.deleteViewableMessages(
+        user_id,
+        chatroom_id
+      );
       console.log("the messages that have been deleted from views", deleted);
       socket.emit("delete viewable messages", chatroom_id);
     } catch (error) {
@@ -145,9 +176,10 @@ io.on("connect", socket => {
     }
   };
 
-  const addFriend = async friend_id => {
+  const addFriend = async (friend_id, user_id) => {
     try {
-      const friendlist = await dbQueries.addFriend(socket.userid, friend_id);
+      const friendlist = await dbQueries.addFriend(user_id, friend_id);
+      console.log("SERVER SIDE CHECKING FIRNEDLIST", friendlist);
       socket.emit("friendlist data", friendlist);
     } catch (error) {
       console.log("Error! :", error);
@@ -163,12 +195,34 @@ io.on("connect", socket => {
     }
   };
 
+  const searchNewFriend = async email => {
+    console.log(
+      "BEFOPRE TRY checking to see what the email is in the server",
+      email
+    );
+
+    try {
+      console.log("checking to see what the email is in the server", email);
+      const friend = await dbQueries.getNewFriendInfo(email);
+      if (!friend) {
+        throw new Error();
+      }
+      socket.emit("found friend", friend);
+      console.log("CHECKING WHAT FRIEND IS ", friend);
+    } catch (error) {
+      console.log("Error! :", error);
+    }
+  };
+
   socket.on("initialize", data => {
     console.log("user_id from client", data);
     socket.userid = data;
     let currentSocket = participantSockets[socket.userid];
     if (currentSocket && io.sockets.sockets[currentSocket]) {
-      console.log("currently logged in socket: ", participantSockets[currentSocket]);
+      console.log(
+        "currently logged in socket: ",
+        participantSockets[currentSocket]
+      );
       //send a message to the client about to be disconnected (pop up saying they got disconnected, etc)
       io.to(currentSocket).emit("to be disconnected");
       //potentially add in a timeout? (delay)
@@ -201,6 +255,14 @@ io.on("connect", socket => {
       deleteViewableMessages(socket.userid, chatroom_id);
     });
 
+    socket.on("search friend", data => {
+      console.log(data);
+      searchNewFriend(data.email);
+    });
+
+    socket.on("add new friend", friendToAdd => {
+      addFriend(friendToAdd.id, socket.userid);
+    });
     // 	socket.on('create new message', newMessageData => {});
   });
 });
