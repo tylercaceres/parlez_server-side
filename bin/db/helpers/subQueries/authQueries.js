@@ -21,6 +21,22 @@ const getUserByUserIdDB = userid => {
 		.then(res => res.rows[0]);
 };
 
+const createFriendlistDB = id => {
+	console.log('does this happen at least', id);
+	console.log(typeof id);
+	return db
+		.query({
+			text: `
+			INSERT INTO friendlists (user_id) VALUES ($1) RETURNING *;`,
+			values: [id],
+			name: 'create_friend_list'
+		})
+		.then(res => {
+			console.log('I AM HERE NOW ********8** AFTER FRIENDLIST*****');
+			return res.rows[0];
+		});
+};
+
 //add user
 const addUserDB = (username, email, password) => {
 	return db
@@ -33,4 +49,4 @@ const addUserDB = (username, email, password) => {
 		.then(res => res.rows[0]);
 };
 
-module.exports = {getUserByEmailDB, getUserByUserIdDB, addUserDB};
+module.exports = {getUserByEmailDB, getUserByUserIdDB, addUserDB, createFriendlistDB};
