@@ -25,11 +25,13 @@ app.use(express.static(__dirname + '/public'));
 const session = require('express-session');
 
 app.use(function(req, res, next) {
+
 	res.header('Access-Control-Allow-Origin', 'http://localhost:3000'); // update to match the domain you will make the request from
 	res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
 	res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
 	res.header('Access-Control-Allow-Credentials', true);
 	next();
+
 });
 
 app.use(
@@ -67,6 +69,7 @@ createChatroomMessage(1, 1, 'hello there').then(res => console.log('THIS IS THE 
 // ********** FUNCTIONS FOR SOCKETS **********
 
 // ********************** SOCKETS
+
 io.on('connect', socket => {
 	// ********** FUNCTIONS FOR SOCKETS **********
 	const initialLoad = async user_id => {
@@ -253,5 +256,17 @@ io.on('connect', socket => {
 			addFriend(friendToAdd.id, socket.userid);
 		});
 		// 	socket.on('create new message', newMessageData => {});
+    
+    
+    socket.on("create single chat", data => {
+      console.log("CREATE SINGLE FREIND", data);
+      createNewChatroom(data.type, data.name, data.creatorUserId, data.usersArr, data.avatar);
+    });
+
+    socket.on("create group chat", data => {
+      console.log("CREATE GROUP CHAT", data);
+      createNewChatroom(data.type, data.name, data.creatorUserId, data.usersArr, data.avatar);
+    });
 	});
+
 });

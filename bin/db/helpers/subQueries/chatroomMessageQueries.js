@@ -79,6 +79,19 @@ const getChatroomMessages = (user_id, chatroom_id) => {
 		.then(res => formatChatroomMessages(res.rows));
 };
 
+// const getInitialChatroomMessages = chatroom_id => {
+//   return db
+//     .query({
+//       text: `SELECT * FROM chatrooms c LEFT OUTER JOIN messages m on c.id = m.chatroom_id WHERE c.id = $1;`,
+//       values: [chatroom_id],
+//       name: "get_initial_chatroom_messages"
+//     })
+//     .then(res => {
+//       console.log("RES ROWS 0", res.rows[0]);
+//       return formatSingleMessage(res.rows[0]);
+//     });
+// };
+
 /**
  *
  **  ! messed up
@@ -140,6 +153,7 @@ const createChatroomMessage = (user_id, chatroom_id, content) => {
 };
 
 module.exports = {
+
 	getAllChatroomMessages,
 	getSingleChatroomMessage,
 	getRecentChatroomMessages,
@@ -149,4 +163,5 @@ module.exports = {
 	deleteChatroomMessageViews,
 	getInitialChatroomMessage,
 	getNewSpecificChatroomMessage
+
 };

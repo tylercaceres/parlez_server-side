@@ -11,9 +11,7 @@ const createChatroom = (chatroom_type, name, user_id, users_arr, avatar = null) 
       values: [chatroom_type, name, avatar, user_id, users_arr],
       name: "create_chatroom"
     })
-    .then(res => {
-      console.log(res.rows);
-    });
+    .then(res => res.rows);
 };
 
 const addChatroomParticipant = (user_id, chatroom_id) => {
