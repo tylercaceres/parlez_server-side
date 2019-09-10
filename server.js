@@ -89,8 +89,10 @@ io.on('connect', socket => {
 			const newParticipants = await dbQueries.createChatroom(type, name, creatorUserId, usersArr, avatar);
 			const newChatroomId = newParticipants[0].chatroom_id;
 			usersArr.forEach(user => {
-				console.log(`${user} has joined the room`);
 				io.sockets.sockets[participantSockets[user]].join(newChatroomId);
+			});
+			usersArr.forEach(user => {
+				console.log(`${user} has joined the room`);
 				botMessageEmit(newChatroomId, 'user joined chatroom', user);
 			});
 
