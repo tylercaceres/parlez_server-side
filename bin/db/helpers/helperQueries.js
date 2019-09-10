@@ -5,7 +5,8 @@ const {
 	getChatroomMessages,
 	deleteChatroomMessage,
 	deleteChatroomMessageViews,
-	createChatroomMessage
+	createChatroomMessage,
+	getNewSpecificChatroomMessage
 } = require('./subQueries/chatroomMessageQueries');
 
 const {
@@ -23,6 +24,7 @@ const {getUserInfo, getFriendInfo, deleteFriend, addFriend, getNewFriendInfo} = 
 const {getUserByEmailDB, getUserByUserIdDB, addUserDB, createFriendlistDB} = require('./subQueries/authQueries');
 
 module.exports = {
+	getNewSpecificChatroomMessage,
 	getUserByEmailDB,
 	getUserByUserIdDB,
 	createFriendlistDB,

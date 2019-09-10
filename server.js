@@ -60,6 +60,8 @@ const participantSockets = {};
  */
 
 // const
+const {createChatroomMessage} = require('./bin/db/helpers/subQueries/chatroomMessageQueries');
+createChatroomMessage(1, 1, 'hello there').then(res => console.log('THIS IS THE NEW MSG:', res[0]));
 
 // dbQueries.getFriendInfo(1).then((res) => console.log('THE FRIENDLIST FUNCTION:', res));
 // ********** FUNCTIONS FOR SOCKETS **********
@@ -90,6 +92,7 @@ io.on('connect', socket => {
 				console.log(`${user} has joined the room`);
 				io.sockets.sockets[participantSockets[user]].join(newChatroomId);
 			});
+
 			//bot creates message to the entire chatroom
 			//bot emits message to the entire chatroom
 			// io.to(newChatroomId).emit("new chatroom message",*insert bot's message here*)
@@ -101,8 +104,8 @@ io.on('connect', socket => {
 	const createNewMessage = async (user_id, chatroom_id, content) => {
 		try {
 			const newChatroomMessage = await dbQueries.createChatroomMessage(user_id, chatroom_id, content);
-			console.log('NEW CHATROOM MESSAGE:', newChatroomMessage);
-			io.to(chatroom_id).emit('new chatroom message', newChatroomMessage);
+			console.log('NEW CHATROOM MESSAGE:', newChatroomMessage[0]);
+			io.to(chatroom_id).emit('new chatroom message', newChatroomMessage[0]);
 		} catch (error) {
 			console.log('Error! :', error);
 		}
@@ -117,8 +120,8 @@ io.on('connect', socket => {
 			socket.emit('delete my message', deletedMsg);
 			console.log(deletedMsg);
 			if (user_id === creator_id) {
-				const updatedDeletedContentMessage = await dbQueries.getSingleChatroomMessage(message_id);
-				socket.to(updatedDeletedContentMessage.chatroom).emit('delete owner message', updatedDeletedContentMessage);
+				// const updatedDeletedContentMessage = await dbQueries.getSingleChatroomMessage(message_id);
+				socket.to(deletedMsg.chatroom).emit('delete owner message', deletedMsg);
 			}
 		} catch (error) {
 			console.log('Error! :', error);
@@ -173,6 +176,31 @@ io.on('connect', socket => {
 			}
 			socket.emit('found friend', friend);
 			console.log('CHECKING WHAT FRIEND IS ', friend);
+		} catch (error) {
+			console.log('Error! :', error);
+		}
+	};
+
+	const botMessageCreateContent = (typeOfAction, user) => {
+		let messageContent = '';
+		switch (typeOfAction) {
+			case 'user joined chatroom':
+				return (messageContent += `${user} has joined the chatroom.`);
+			case 'user left chatroom':
+				return (messageContent += `${user} has left the chatroom.`);
+			case 'user created chatroom':
+				return (messageContent += `${user} has created the chatroom.`);
+			case 'user admin status updated':
+				return (messageContent += `${user} admin status been changed.`);
+			default:
+				return null;
+		}
+	};
+
+	const botMessageCreateEmit = async (chatroom_id, content) => {
+		try {
+			const botMessage = await dbQueries.createChatroomMessage(0, chatroom_id, content);
+			io.to(chatroom_id).emit('new chatroom message', botMessage);
 		} catch (error) {
 			console.log('Error! :', error);
 		}
