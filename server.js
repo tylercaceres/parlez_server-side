@@ -91,6 +91,7 @@ io.on('connect', socket => {
 			usersArr.forEach(user => {
 				console.log(`${user} has joined the room`);
 				io.sockets.sockets[participantSockets[user]].join(newChatroomId);
+				botMessageEmit(newChatroomId, 'user joined chatroom', user);
 			});
 
 			//bot creates message to the entire chatroom
@@ -197,9 +198,11 @@ io.on('connect', socket => {
 		}
 	};
 
-	const botMessageCreateEmit = async (chatroom_id, content) => {
+	const botMessageEmit = async (chatroom_id, type_of_action, user_id) => {
 		try {
-			const botMessage = await dbQueries.createChatroomMessage(0, chatroom_id, content);
+			const username = await dbQueries.getUserInfo(user_id).username;
+			const msgContent = botMessageCreateContent(type_of_action, username);
+			const botMessage = await dbQueries.createChatroomMessage(0, chatroom_id, msgContent);
 			io.to(chatroom_id).emit('new chatroom message', botMessage);
 		} catch (error) {
 			console.log('Error! :', error);
