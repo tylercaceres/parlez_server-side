@@ -53,6 +53,8 @@ const dbQueries = require("./bin/db/helpers/helperQueries");
 // global object to store the latest socket of a user
 const participantSockets = {};
 
+dbQueries.checkInChatAlready(1, 2).then(res => console.log("I AM WRITING THIS THEEEHE:", res));
+
 /**
  * !socket global object
  * participantSockets = {'1' : 'xyz1234___1234',
@@ -87,6 +89,21 @@ io.on("connect", socket => {
 
   const createNewChatroom = async (type, name, creatorUserId, usersArr, avatar = "") => {
     try {
+      if (type === "single") {
+        console.log("HERE0000");
+        const existingChatroom = await dbQueries.checkInChatAlready(usersArr[0], usersArr[1]);
+        console.log("HERE0000", existingChatroom);
+        const prevChatroomNumber = existingChatroom ? existingChatroom : null;
+        console.log("HERE00009999999", prevChatroomNumber);
+        if (prevChatroomNumber) {
+          console.log("I AM IN THIS IF STATEMENT 1111111");
+          const newMessage = await botMessageEmit(prevChatroomNumber, "reopen chatroom", creatorUserId);
+          console.log("NEW MESSAGE: -------- ", newMessage);
+          return;
+        }
+      }
+
+      console.log("I AM IN THE ELSE STATEMENT SECTIIIIOOOONNN");
       const newParticipants = await dbQueries.createChatroom(type, name, creatorUserId, usersArr, avatar);
       const newChatroomId = newParticipants[0].chatroom_id;
       usersArr.forEach(user => {
@@ -103,11 +120,10 @@ io.on("connect", socket => {
         botMessageEmit(newChatroomId, "user joined chatroom", user);
         console.log("useruseruseruser123456789");
       });
-
+    } catch (error) {
       //bot creates message to the entire chatroom
       //bot emits message to the entire chatroom
       // io.to(newChatroomId).emit("new chatroom message",*insert bot's message here*)
-    } catch (error) {
       console.log("Error! :", error);
     }
   };
@@ -211,6 +227,8 @@ io.on("connect", socket => {
         return (messageContent += `${user} has created the chatroom.`);
       case "user admin status updated":
         return (messageContent += `${user} admin status been changed.`);
+      case "reopen chatroom":
+        return (messageContent += `${user} has requested to restart chatroom.`);
       default:
         return null;
     }

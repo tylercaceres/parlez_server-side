@@ -1,5 +1,20 @@
 const db = require("../../../../db/connection/db");
 
+const checkInChatAlready = (user1_id, user2_id) => {
+  return db
+    .query({
+      text: `select t1.id as chatroom_id from (select c.id as id from participants p join chatrooms c on p.chatroom_id = c.id where p.user_id = $1 and c.chatroom_type='single') as t1
+      join (select c.id as id from participants p join chatrooms c on p.chatroom_id = c.id where p.user_id = $2 and c.chatroom_type='single') as t2 on t1.id = t2.id;`,
+      values: [user1_id, user2_id],
+      name: "check_in_chat_already"
+    })
+    .then(res => {
+      console.log("res.rows", res.rows);
+      // return res.rows[0] && res.rows[0].chatroom_id ? res.rows[0].chatroom_id : null;
+      return res.rows[0].chatroom_id;
+    });
+};
+
 const createChatroom = (chatroom_type, name, user_id, users_arr, avatar = null) => {
   return db
     .query({
@@ -116,5 +131,6 @@ module.exports = {
   updateChatroom,
   updateChatroomParticipant,
   deleteChatroomParticipant,
-  deleteViewableMessages
+  deleteViewableMessages,
+  checkInChatAlready
 };
