@@ -180,6 +180,7 @@ io.on("connect", socket => {
   const addFriend = async (user_id, friend_id) => {
     try {
       const friendlist = await dbQueries.addFriend(user_id, friend_id);
+      const friendlist2 = await dbQueries.addFriend(friend_id, user_id);
       console.log("SERVER SIDE CHECKING FIRNEDLIST", friendlist);
       socket.emit("friendlist data", friendlist);
     } catch (error) {
