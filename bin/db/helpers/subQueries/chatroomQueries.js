@@ -8,11 +8,7 @@ const checkInChatAlready = (user1_id, user2_id) => {
       values: [user1_id, user2_id],
       name: "check_in_chat_already"
     })
-    .then(res => {
-      console.log("res.rows", res.rows);
-      // return res.rows[0] && res.rows[0].chatroom_id ? res.rows[0].chatroom_id : null;
-      return res.rows[0].chatroom_id;
-    });
+    .then(res => res.rows[0]);
 };
 
 const createChatroom = (chatroom_type, name, user_id, users_arr, avatar = null) => {
