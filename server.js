@@ -153,7 +153,7 @@ io.on("connect", socket => {
     try {
       if (io.sockets.sockets[participantSockets[user_id]]) {
         console.log("USER 123:", user_id);
-        io.sockets.sockets[participantSockets[user]].leave(chatroom_id);
+        io.sockets.sockets[participantSockets[user_id]].leave(chatroom_id);
       }
       await deleteViewableMessages(user_id, chatroom_id);
       await dbQueries.deleteChatroomParticipant(user_id, chatroom_id);
@@ -289,7 +289,7 @@ io.on("connect", socket => {
       createNewChatroom(data.type, data.name, data.creatorUserId, data.usersArr, data.avatar);
     });
 
-    socket.on("leave chatroom", (user_id, chatroom_id) => {
+    socket.on("leave chatroom", ({ user_id, chatroom_id }) => {
       console.log("LEAVE CHATROOM HERE");
       console.log("user_id:", user_id);
       console.log("chatroom_id:", chatroom_id);
