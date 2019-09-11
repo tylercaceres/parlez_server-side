@@ -13,11 +13,11 @@ const getUserInfo = user_id => {
     .then(res => res.rows[0]);
 };
 
-const getNewFriendInfo = email => {
+const getNewFriendInfo = (email, user_id) => {
   return db
     .query({
-      text: "SELECT username, email, avatar, status, id FROM users WHERE email=$1 AND is_active=true;",
-      values: [email],
+      text: "SELECT username, email, avatar, status, id FROM users WHERE email=$1 and id != $2 and is_active=true;",
+      values: [email, user_id],
       name: "get_new_friend_info"
     })
     .then(res => res.rows[0]);
@@ -40,7 +40,6 @@ const getFriendInfo = user_id => {
 };
 
 const deleteFriend = (user_id, friend_id) => {
-
   console.log("info being passed to the deleteFriend query:", user_id, friend_id);
   return db
     .query({
@@ -54,7 +53,6 @@ const deleteFriend = (user_id, friend_id) => {
       name: "delete_friend"
     })
     .then(res => getFriendInfo(user_id));
-
 };
 
 const addFriend = (user_id, friend_id) => {

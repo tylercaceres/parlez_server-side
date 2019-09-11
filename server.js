@@ -199,12 +199,12 @@ io.on("connect", socket => {
     }
   };
 
-  const searchNewFriend = async email => {
+  const searchNewFriend = async (email, user_id) => {
     console.log("BEFOPRE TRY checking to see what the email is in the server", email);
 
     try {
       console.log("checking to see what the email is in the server", email);
-      const friend = await dbQueries.getNewFriendInfo(email);
+      const friend = await dbQueries.getNewFriendInfo(email, user_id);
       if (!friend) {
         throw new Error();
       }
@@ -313,7 +313,7 @@ io.on("connect", socket => {
 
     socket.on("search friend", data => {
       console.log(data);
-      searchNewFriend(data.email);
+      searchNewFriend(data.email, socket.userid);
     });
 
     socket.on("add new friend", friendToAdd => {
