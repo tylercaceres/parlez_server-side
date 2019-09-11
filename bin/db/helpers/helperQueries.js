@@ -27,7 +27,10 @@ const {
   deleteFriend,
   addFriend,
   getNewFriendInfo,
-  updateUsername
+initialLoadUserInfo,
+  updateUsername,
+  updateAvatar,
+  updateStatus
 } = require("./subQueries/userQueries");
 
 const { getUserByEmailDB, getUserByUserIdDB, addUserDB, createFriendlistDB } = require("./subQueries/authQueries");
@@ -58,5 +61,7 @@ module.exports = {
   deleteViewableMessages,
   deleteChatroomMessageViews,
   getNewFriendInfo,
-  updateUsername
+  updateUsername,
+  updateAvatar,
+  updateStatus
 };

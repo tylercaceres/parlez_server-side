@@ -61,10 +61,6 @@ dbQueries.checkInChatAlready(1, 2).then(res => console.log("I AM WRITING THIS TH
  * 											'2' : 'abcdefghijklmnopqrstuvwxyz'}
  */
 
-// const
-const { createChatroomMessage } = require("./bin/db/helpers/subQueries/chatroomMessageQueries");
-createChatroomMessage(1, 1, "hello there").then(res => console.log("THIS IS THE NEW MSG:", res[0]));
-
 // dbQueries.getFriendInfo(1).then((res) => console.log('THE FRIENDLIST FUNCTION:', res));
 // ********** FUNCTIONS FOR SOCKETS **********
 
@@ -218,6 +214,35 @@ io.on("connect", socket => {
     }
   };
 
+  const updateUsername = async (user_id, username) => {
+    try {
+      const newUserProfile = await dbQueries.updateUsername(user_id, username);
+      console.log("CHECKING TO SEE IN SERVER API TO SEE IF WE GET BACK NEW USER INFO", newUserProfile);
+      socket.emit("updated username data", newUserProfile);
+    } catch (error) {
+      console.log("Error! :", error);
+    }
+  };
+
+  const updateAvatar = async (user_id, avatar) => {
+    try {
+      const newUserAvatar = await dbQueries.updateAvatar(user_id, avatar);
+      console.log("CHECKING TO SEE IN SERVER SIDE IF WE GET BACK NEW USER AVATAR", newUserAvatar);
+      socket.emit("updated avatar data", newUserAvatar);
+    } catch (error) {
+      console.log("Error! :", error);
+    }
+  };
+
+  const updateStatus = async (user_id, status) => {
+    try {
+      const newUserStatus = await dbQueries.updateStatus(user_id, status);
+      socket.emit("updated status data", newUserStatus);
+    } catch (error) {
+      console.log("Error! :", error);
+    }
+  };
+
   const botMessageCreateContent = (typeOfAction, user) => {
     let messageContent = "";
     switch (typeOfAction) {
@@ -309,11 +334,23 @@ io.on("connect", socket => {
       createNewChatroom(data.type, data.name, data.creatorUserId, data.usersArr, data.avatar);
     });
 
+
+    socket.on("change name", data => {
+      console.log("CHANGE NAME", data);
+      updateUsername(data.creatorUserId, data.username);
+    })
+
     socket.on("leave chatroom", ({ user_id, chatroom_id }) => {
       console.log("LEAVE CHATROOM HERE");
       console.log("user_id:", user_id);
       console.log("chatroom_id:", chatroom_id);
       leaveChatroom(user_id, chatroom_id);
     });
+
+    socket.on("change url", data => {
+      console.log("CHANGE URL", data);
+      updateAvatar(data.creatorUserId, data.avatar);
+    });
   });
+  //socket on initialize
 });
