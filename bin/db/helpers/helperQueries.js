@@ -27,6 +27,7 @@ const {
   deleteFriend,
   addFriend,
   getNewFriendInfo,
+initialLoadUserInfo,
   updateUsername,
   updateAvatar,
   updateStatus
