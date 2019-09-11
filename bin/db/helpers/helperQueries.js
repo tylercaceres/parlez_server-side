@@ -17,7 +17,8 @@ const {
   updateChatroom,
   updateChatroomParticipant,
   deleteChatroomParticipant,
-  deleteViewableMessages
+  deleteViewableMessages,
+  checkInChatAlready
 } = require("./subQueries/chatroomQueries");
 
 const {
@@ -35,6 +36,7 @@ const { getUserByEmailDB, getUserByUserIdDB, addUserDB, createFriendlistDB } = r
 
 module.exports = {
   getNewSpecificChatroomMessage,
+  checkInChatAlready,
   getUserByEmailDB,
   getUserByUserIdDB,
   createFriendlistDB,

@@ -1,28 +1,28 @@
 // load .env data into process.env
-require("dotenv").config();
-require("util").inspect.defaultOptions.depth = null;
+require('dotenv').config();
+require('util').inspect.defaultOptions.depth = null;
 
 // constant setup
 const PORT = process.env.PORT || 3003;
-const ENV = process.env.ENV || "development";
+const ENV = process.env.ENV || 'development';
 
 // server config
-const express = require("express");
+const express = require('express');
 const app = express();
-const server = require("http").Server(app);
-const io = require("socket.io")(server);
+const server = require('http').Server(app);
+const io = require('socket.io')(server);
 
 // database connection
-const db = require("./db/connection/db.js");
+const db = require('./db/connection/db.js');
 db.connect();
 
 // additional server set up
-const morgan = require("morgan");
-app.use(morgan("dev"));
-app.use(express.json({ extended: true }));
-app.set("view engine", "ejs");
-app.use(express.static(__dirname + "/public"));
-const session = require("express-session");
+const morgan = require('morgan');
+app.use(morgan('dev'));
+app.use(express.json({extended: true}));
+app.set('view engine', 'ejs');
+app.use(express.static(__dirname + '/public'));
+const session = require('express-session');
 
 app.use(function(req, res, next) {
   res.header("Access-Control-Allow-Origin", "http://localhost:3000"); // update to match the domain you will make the request from
@@ -33,25 +33,27 @@ app.use(function(req, res, next) {
 });
 
 app.use(
-  session({
-    secret: "lhl parlez",
-    resave: true,
-    saveUninitialized: true
-  })
+	session({
+		secret: 'lhl parlez',
+		resave: true,
+		saveUninitialized: true
+	})
 );
 
 // ***** routes *****
-const defaultRoutes = require("./routes/default");
-app.use("/auth/", defaultRoutes);
+const defaultRoutes = require('./routes/default');
+app.use('/auth/', defaultRoutes);
 
 // server initialize
 app.listen(PORT, () => console.log(`Running on port ${PORT}`));
 server.listen(8080);
 
-const dbQueries = require("./bin/db/helpers/helperQueries");
+const dbQueries = require('./bin/db/helpers/helperQueries');
 
 // global object to store the latest socket of a user
 const participantSockets = {};
+
+dbQueries.checkInChatAlready(1, 2).then(res => console.log("I AM WRITING THIS THEEEHE:", res));
 
 /**
  * !socket global object
@@ -60,8 +62,8 @@ const participantSockets = {};
  */
 
 // const
-const { createChatroomMessage } = require("./bin/db/helpers/subQueries/chatroomMessageQueries");
-createChatroomMessage(1, 1, "hello there").then(res => console.log("THIS IS THE NEW MSG:", res[0]));
+const {createChatroomMessage} = require('./bin/db/helpers/subQueries/chatroomMessageQueries');
+createChatroomMessage(1, 1, 'hello there').then(res => console.log('THIS IS THE NEW MSG:', res[0]));
 
 // dbQueries.getFriendInfo(1).then((res) => console.log('THE FRIENDLIST FUNCTION:', res));
 // ********** FUNCTIONS FOR SOCKETS **********
@@ -75,7 +77,6 @@ io.on("connect", socket => {
       const activeChatrooms = await dbQueries.getActiveChatrooms(user_id);
       activeChatrooms.forEach(chatroom => socket.join(chatroom.chatroom_id));
       const recentChatroomMessages = await dbQueries.getRecentChatroomMessages(user_id);
-
       const friendList = await dbQueries.getFriendInfo(user_id);
       socket.emit("initial message data", recentChatroomMessages);
       socket.emit("friendlist data", friendList);
@@ -85,8 +86,24 @@ io.on("connect", socket => {
       console.log("Error! :", error);
     }
   };
+
   const createNewChatroom = async (type, name, creatorUserId, usersArr, avatar = "") => {
     try {
+      if (type === "single") {
+        console.log("HERE0000");
+        const existingChatroom = await dbQueries.checkInChatAlready(usersArr[0], usersArr[1]);
+        console.log("HERE0000", existingChatroom);
+        const prevChatroomNumber = existingChatroom ? existingChatroom : null;
+        console.log("HERE00009999999", prevChatroomNumber);
+        if (prevChatroomNumber) {
+          console.log("I AM IN THIS IF STATEMENT 1111111");
+          const newMessage = await botMessageEmit(prevChatroomNumber, "reopen chatroom", creatorUserId);
+          console.log("NEW MESSAGE: -------- ", newMessage);
+          return;
+        }
+      }
+
+      console.log("I AM IN THE ELSE STATEMENT SECTIIIIOOOONNN");
       const newParticipants = await dbQueries.createChatroom(type, name, creatorUserId, usersArr, avatar);
       const newChatroomId = newParticipants[0].chatroom_id;
       usersArr.forEach(user => {
@@ -103,11 +120,10 @@ io.on("connect", socket => {
         botMessageEmit(newChatroomId, "user joined chatroom", user);
         console.log("useruseruseruser123456789");
       });
-
+    } catch (error) {
       //bot creates message to the entire chatroom
       //bot emits message to the entire chatroom
       // io.to(newChatroomId).emit("new chatroom message",*insert bot's message here*)
-    } catch (error) {
       console.log("Error! :", error);
     }
   };
@@ -126,7 +142,6 @@ io.on("connect", socket => {
     console.log("before try");
     try {
       const deletedChatroomMessage = await dbQueries.deleteChatroomMessage(user_id, message_id);
-
       await dbQueries.deleteChatroomMessageViews(user_id, message_id);
       const deletedMsg = await dbQueries.getSingleChatroomMessage(message_id);
       socket.emit("delete my message", deletedMsg);
@@ -143,7 +158,6 @@ io.on("connect", socket => {
   const deleteViewableMessages = async (user_id, chatroom_id) => {
     try {
       const deleted = await dbQueries.deleteViewableMessages(user_id, chatroom_id);
-
       console.log("the messages that have been deleted from views", deleted);
       socket.emit("delete viewable messages", chatroom_id);
     } catch (error) {
@@ -153,7 +167,13 @@ io.on("connect", socket => {
 
   const leaveChatroom = async (user_id, chatroom_id) => {
     try {
-      console.log("leave chatroom");
+      if (io.sockets.sockets[participantSockets[user_id]]) {
+        console.log("USER 123:", user_id);
+        io.sockets.sockets[participantSockets[user_id]].leave(chatroom_id);
+      }
+      await deleteViewableMessages(user_id, chatroom_id);
+      await dbQueries.deleteChatroomParticipant(user_id, chatroom_id);
+      botMessageEmit(chatroom_id, "user left chatroom", user_id);
     } catch (error) {
       console.log("Error! :", error);
     }
@@ -236,6 +256,8 @@ io.on("connect", socket => {
         return (messageContent += `${user} has created the chatroom.`);
       case "user admin status updated":
         return (messageContent += `${user} admin status been changed.`);
+      case "reopen chatroom":
+        return (messageContent += `${user} has requested to restart chatroom.`);
       default:
         return null;
     }
@@ -258,7 +280,6 @@ io.on("connect", socket => {
     let currentSocket = participantSockets[socket.userid];
     if (currentSocket && io.sockets.sockets[currentSocket]) {
       console.log("currently logged in socket: ", participantSockets[currentSocket]);
-
       //send a message to the client about to be disconnected (pop up saying they got disconnected, etc)
       io.to(currentSocket).emit("to be disconnected");
       //potentially add in a timeout? (delay)
@@ -315,9 +336,17 @@ io.on("connect", socket => {
       createNewChatroom(data.type, data.name, data.creatorUserId, data.usersArr, data.avatar);
     });
 
+
     socket.on("change name", data => {
       console.log("CHANGE NAME", data);
       updateUsername(data.creatorUserId, data.username);
+    })
+
+    socket.on("leave chatroom", ({ user_id, chatroom_id }) => {
+      console.log("LEAVE CHATROOM HERE");
+      console.log("user_id:", user_id);
+      console.log("chatroom_id:", chatroom_id);
+      leaveChatroom(user_id, chatroom_id);
     });
 
     socket.on("change url", data => {
