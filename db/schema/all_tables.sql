@@ -67,7 +67,7 @@ CREATE TABLE IF NOT EXISTS chatrooms (
   id SERIAL PRIMARY KEY NOT NULL,
   chatroom_type VARCHAR(20) NOT NULL,
   name VARCHAR(30) NOT NULL,
-  avatar VARCHAR(255) DEFAULT 'https://png.pngtree.com/svg/20150918/icon_group_avatar_183029.png',
+  avatar VARCHAR(255),
   created_at timestamp DEFAULT NOW(),
   updated_at timestamp DEFAULT NOW(),
   CONSTRAINT type_check CHECK (chatroom_type IN ('group', 'single'))

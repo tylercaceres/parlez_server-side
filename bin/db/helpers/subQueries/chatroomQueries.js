@@ -11,7 +11,9 @@ const checkInChatAlready = (user1_id, user2_id) => {
     .then(res => res.rows[0]);
 };
 
-const createChatroom = (chatroom_type, name, user_id, users_arr, avatar = null) => {
+const createChatroom = (chatroom_type, name, user_id, users_arr, avatar) => {
+  const newAvatar =
+    avatar === "" ? "http://www.newdesignfile.com/postpic/2012/08/group-people-icon-team_357813.png" : avatar;
   return db
     .query({
       text: `
@@ -19,7 +21,7 @@ const createChatroom = (chatroom_type, name, user_id, users_arr, avatar = null) 
 			insert into participants (user_id, chatroom_id, is_admin) 
 				(select user_id, id, user_id = $4 from new_chat_id cross join unnest($5::integer[]) as user_id) returning *;
     `,
-      values: [chatroom_type, name, avatar, user_id, users_arr],
+      values: [chatroom_type, name, newAvatar, user_id, users_arr],
       name: "create_chatroom"
     })
     .then(res => res.rows);
