@@ -1,28 +1,28 @@
 // load .env data into process.env
-require("dotenv").config();
-require("util").inspect.defaultOptions.depth = null;
+require('dotenv').config();
+require('util').inspect.defaultOptions.depth = null;
 
 // constant setup
 const PORT = process.env.PORT || 3003;
-const ENV = process.env.ENV || "development";
+const ENV = process.env.ENV || 'development';
 
 // server config
-const express = require("express");
+const express = require('express');
 const app = express();
-const server = require("http").Server(app);
-const io = require("socket.io")(server);
+const server = require('http').Server(app);
+const io = require('socket.io')(server);
 
 // database connection
-const db = require("./db/connection/db.js");
+const db = require('./db/connection/db.js');
 db.connect();
 
 // additional server set up
-const morgan = require("morgan");
-app.use(morgan("dev"));
-app.use(express.json({ extended: true }));
-app.set("view engine", "ejs");
-app.use(express.static(__dirname + "/public"));
-const session = require("express-session");
+const morgan = require('morgan');
+app.use(morgan('dev'));
+app.use(express.json({extended: true}));
+app.set('view engine', 'ejs');
+app.use(express.static(__dirname + '/public'));
+const session = require('express-session');
 
 app.use(function(req, res, next) {
 	res.header('Access-Control-Allow-Origin', 'http://localhost:3000'); // update to match the domain you will make the request from
@@ -33,22 +33,22 @@ app.use(function(req, res, next) {
 });
 
 app.use(
-  session({
-    secret: "lhl parlez",
-    resave: true,
-    saveUninitialized: true
-  })
+	session({
+		secret: 'lhl parlez',
+		resave: true,
+		saveUninitialized: true
+	})
 );
 
 // ***** routes *****
-const defaultRoutes = require("./routes/default");
-app.use("/auth/", defaultRoutes);
+const defaultRoutes = require('./routes/default');
+app.use('/auth/', defaultRoutes);
 
 // server initialize
 app.listen(PORT, () => console.log(`Running on port ${PORT}`));
 server.listen(8080);
 
-const dbQueries = require("./bin/db/helpers/helperQueries");
+const dbQueries = require('./bin/db/helpers/helperQueries');
 
 // global object to store the latest socket of a user
 const participantSockets = {};
@@ -60,8 +60,8 @@ const participantSockets = {};
  */
 
 // const
-const { createChatroomMessage } = require("./bin/db/helpers/subQueries/chatroomMessageQueries");
-createChatroomMessage(1, 1, "hello there").then(res => console.log("THIS IS THE NEW MSG:", res[0]));
+const {createChatroomMessage} = require('./bin/db/helpers/subQueries/chatroomMessageQueries');
+createChatroomMessage(1, 1, 'hello there').then(res => console.log('THIS IS THE NEW MSG:', res[0]));
 
 // dbQueries.getFriendInfo(1).then((res) => console.log('THE FRIENDLIST FUNCTION:', res));
 // ********** FUNCTIONS FOR SOCKETS **********
@@ -91,7 +91,7 @@ io.on('connect', socket => {
 			const newChatroomId = newParticipants[0].chatroom_id;
 			usersArr.forEach(user => {
 				console.log('USER1234:', user);
-				if (currentSocket && io.sockets.sockets[participantSockets[user]]) {
+				if (io.sockets.sockets[participantSockets[user]]) {
 					console.log('USER 123:', user);
 					io.sockets.sockets[participantSockets[user]].join(newChatroomId);
 				}
@@ -281,3 +281,4 @@ io.on('connect', socket => {
 			createNewChatroom(data.type, data.name, data.creatorUserId, data.usersArr, data.avatar);
 		});
 	});
+});

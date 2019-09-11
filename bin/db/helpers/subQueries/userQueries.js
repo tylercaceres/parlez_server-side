@@ -47,7 +47,7 @@ const deleteFriend = (user_id, friend_id) => {
 			(SELECT f.id
 			FROM users u join friendlists fl on u.id = fl.user_id
 			join friends f on f.friendlist_id = fl.id
-			WHERE u.id = $1 and f.friend_id = $2)
+			WHERE (u.id = $1 and f.friend_id = $2) or (u.id = $2 and f.friend_id = $1))
 			RETURNING *;`,
 			values: [user_id, friend_id],
 			name: 'delete_friend'
