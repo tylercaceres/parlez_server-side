@@ -25,13 +25,11 @@ app.use(express.static(__dirname + '/public'));
 const session = require('express-session');
 
 app.use(function(req, res, next) {
-
 	res.header('Access-Control-Allow-Origin', 'http://localhost:3000'); // update to match the domain you will make the request from
 	res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
 	res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
 	res.header('Access-Control-Allow-Credentials', true);
 	next();
-
 });
 
 app.use(
@@ -92,11 +90,18 @@ io.on('connect', socket => {
 			const newParticipants = await dbQueries.createChatroom(type, name, creatorUserId, usersArr, avatar);
 			const newChatroomId = newParticipants[0].chatroom_id;
 			usersArr.forEach(user => {
-				io.sockets.sockets[participantSockets[user]].join(newChatroomId);
+				console.log('USER1234:', user);
+				if (currentSocket && io.sockets.sockets[participantSockets[user]]) {
+					console.log('USER 123:', user);
+					io.sockets.sockets[participantSockets[user]].join(newChatroomId);
+				}
 			});
+			botMessageEmit(newChatroomId, 'user created chatroom', creatorUserId);
 			usersArr.forEach(user => {
+				console.log('userrrrrr123:', user);
 				console.log(`${user} has joined the room`);
 				botMessageEmit(newChatroomId, 'user joined chatroom', user);
+				console.log('useruseruseruser123456789');
 			});
 
 			//bot creates message to the entire chatroom
@@ -152,7 +157,7 @@ io.on('connect', socket => {
 		}
 	};
 
-	const addFriend = async (friend_id, user_id) => {
+	const addFriend = async (user_id, friend_id) => {
 		try {
 			const friendlist = await dbQueries.addFriend(user_id, friend_id);
 			console.log('SERVER SIDE CHECKING FIRNEDLIST', friendlist);
@@ -162,9 +167,10 @@ io.on('connect', socket => {
 		}
 	};
 
-	const deleteFriend = async friend_id => {
+	const deleteFriend = async (user_id, friend_id) => {
 		try {
-			const friendlist = await dbQueries.deleteFriend(socket.userid, friend_id);
+			const friendlist = await dbQueries.deleteFriend(user_id, friend_id);
+			console.log('deleted friendlist');
 			socket.emit('friendlist data', friendlist);
 		} catch (error) {
 			console.log('Error! :', error);
@@ -205,7 +211,7 @@ io.on('connect', socket => {
 
 	const botMessageEmit = async (chatroom_id, type_of_action, user_id) => {
 		try {
-			const username = await dbQueries.getUserInfo(user_id).username;
+			const userName = await dbQueries.getUserInfo(user_id);
 			const msgContent = botMessageCreateContent(type_of_action, username);
 			const botMessage = await dbQueries.createChatroomMessage(0, chatroom_id, msgContent);
 			io.to(chatroom_id).emit('new chatroom message', botMessage);
@@ -258,20 +264,21 @@ io.on('connect', socket => {
 		});
 
 		socket.on('add new friend', friendToAdd => {
-			addFriend(friendToAdd.id, socket.userid);
+			addFriend(socket.userid, friendToAdd.id);
 		});
-		// 	socket.on('create new message', newMessageData => {});
-    
-    
-    socket.on("create single chat", data => {
-      console.log("CREATE SINGLE FREIND", data);
-      createNewChatroom(data.type, data.name, data.creatorUserId, data.usersArr, data.avatar);
-    });
 
-    socket.on("create group chat", data => {
-      console.log("CREATE GROUP CHAT", data);
-      createNewChatroom(data.type, data.name, data.creatorUserId, data.usersArr, data.avatar);
-    });
+		socket.on('delete friend', friendToDelete => {
+			deleteFriend(socket.userid, friendToDelete.id);
+		});
+
+		socket.on('create single chat', data => {
+			console.log('CREATE SINGLE FREIND', data);
+			createNewChatroom(data.type, data.name, data.creatorUserId, data.usersArr, data.avatar);
+		});
+
+		socket.on('create group chat', data => {
+			console.log('CREATE GROUP CHAT', data);
+			createNewChatroom(data.type, data.name, data.creatorUserId, data.usersArr, data.avatar);
+		});
 	});
-
 });
