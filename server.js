@@ -151,7 +151,13 @@ io.on("connect", socket => {
 
   const leaveChatroom = async (user_id, chatroom_id) => {
     try {
-      console.log("leave chatroom");
+      if (io.sockets.sockets[participantSockets[user_id]]) {
+        console.log("USER 123:", user_id);
+        io.sockets.sockets[participantSockets[user]].leave(chatroom_id);
+      }
+      await deleteViewableMessages(user_id, chatroom_id);
+      await dbQueries.deleteChatroomParticipant(user_id, chatroom_id);
+      botMessageEmit(chatroom_id, "user left chatroom", user_id);
     } catch (error) {
       console.log("Error! :", error);
     }
@@ -281,6 +287,13 @@ io.on("connect", socket => {
     socket.on("create group chat", data => {
       console.log("CREATE GROUP CHAT", data);
       createNewChatroom(data.type, data.name, data.creatorUserId, data.usersArr, data.avatar);
+    });
+
+    socket.on("leave chatroom", (user_id, chatroom_id) => {
+      console.log("LEAVE CHATROOM HERE");
+      console.log("user_id:", user_id);
+      console.log("chatroom_id:", chatroom_id);
+      leaveChatroom(user_id, chatroom_id);
     });
   });
 });
