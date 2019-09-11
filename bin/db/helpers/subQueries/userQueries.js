@@ -84,11 +84,41 @@ const updateUsername = (user_id, username) => {
     .then(res => res.rows[0]);
 };
 
+const updateAvatar = (user_id, avatar) => {
+  return db
+    .query({
+      text: `UPDATE users
+    SET avatar = $2
+    WHERE id = $1
+    RETURNING *;
+    `,
+      values: [user_id, avatar],
+      name: "update_avatar"
+    })
+    .then(res => res.rows[0]);
+};
+
+const updateStatus = (user_id, status) => {
+  return db
+    .query({
+      text: `UPDATE users
+    SET status = $2
+    WHERE id = $1
+    RETURNING *;
+    `,
+      values: [user_id, status],
+      name: "update_avatar"
+    })
+    .then(res => res.rows[0]);
+};
+
 module.exports = {
   getUserInfo,
   getFriendInfo,
   deleteFriend,
   addFriend,
   getNewFriendInfo,
-  updateUsername
+  updateUsername,
+  updateAvatar,
+  updateStatus
 };
