@@ -1,8 +1,8 @@
 INSERT INTO users (id,email, password, username, avatar, status, is_active) VALUES 
-(0,'tyler.caceres@gmail.com', 'galuxeon321', 'AUTOMATED BOT', 'https://robohash.org/quammaximenam.jpg?size=50x50&set=set1', 'TERMINATOR', true);
+(0,'admin', 'admin', 'Mr. Roboto', 'https://avatarfiles.alphacoders.com/130/130532.jpg', 'TERMINATOR', true);
 
 INSERT INTO users (email, password, username, avatar, status, is_active) VALUES 
--- ('tyler.caceres@gmail.com', 'galuxeon321', 'AUTOMATED BOT', 'https://robohash.org/quammaximenam.jpg?size=50x50&set=set1', 'TERMINATOR', true),
+-- ('tyler.caceres@gmail.com', 'galuxeon321', 'Mr. Robot', 'https://robohash.org/quammaximenam.jpg?size=50x50&set=set1', 'TERMINATOR', true),
 ('agagg0@mapquest.com', '9NkA3zDzDU6J', 'agoldenofireland0', 'https://robohash.org/quammaximenam.jpg?size=50x50&set=set1', 'Automated well-modulated help-desk', true),
 ('ccorsham1@wufoo.com', 'elUzykgWZ', 'cbengochea1', 'https://robohash.org/nihilnamin.png?size=50x50&set=set1', 'Optional secondary process improvement', true),
 ('mpacquet2@sfgate.com', 'IjSN88A1RuK7', 'smusto2', 'https://robohash.org/veritatisveniamdeserunt.png?size=50x50&set=set1', 'De-engineered intermediate website', false),

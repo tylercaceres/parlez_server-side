@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS users (
   email citext NOT NULL UNIQUE,
   password varchar(255) NOT NULL,
   username varchar(255) NOT NULL,
-  avatar varchar(255),
+  avatar varchar(255) DEFAULT 'https://i1.wp.com/www.mvhsoracle.com/wp-content/uploads/2018/08/default-avatar.jpg?w=300&ssl=1',
   status varchar(255),
   is_active boolean NOT NULL DEFAULT true,
   created_at timestamp DEFAULT NOW(),

@@ -95,7 +95,7 @@ io.on("connect", socket => {
         console.log("HERE00009999999", prevChatroomNumber);
         if (prevChatroomNumber) {
           console.log("I AM IN THIS IF STATEMENT 1111111");
-          const newMessage = await botMessageEmit(prevChatroomNumber, "reopen chatroom", creatorUserId);
+          const newMessage = await botMessageEmit(prevChatroomNumber.chatroom_id, "reopen chatroom", creatorUserId);
           console.log("NEW MESSAGE: -------- ", newMessage);
           return;
         }
@@ -180,6 +180,7 @@ io.on("connect", socket => {
   const addFriend = async (user_id, friend_id) => {
     try {
       const friendlist = await dbQueries.addFriend(user_id, friend_id);
+      const friendlist2 = await dbQueries.addFriend(friend_id, user_id);
       console.log("SERVER SIDE CHECKING FIRNEDLIST", friendlist);
       socket.emit("friendlist data", friendlist);
     } catch (error) {
@@ -334,11 +335,10 @@ io.on("connect", socket => {
       createNewChatroom(data.type, data.name, data.creatorUserId, data.usersArr, data.avatar);
     });
 
-
     socket.on("change name", data => {
       console.log("CHANGE NAME", data);
       updateUsername(data.creatorUserId, data.username);
-    })
+    });
 
     socket.on("leave chatroom", ({ user_id, chatroom_id }) => {
       console.log("LEAVE CHATROOM HERE");
