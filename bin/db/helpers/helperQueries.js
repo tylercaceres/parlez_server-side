@@ -50,5 +50,6 @@ module.exports = {
   addFriend,
   deleteViewableMessages,
   deleteChatroomMessageViews,
-  getNewFriendInfo
+  getNewFriendInfo,
+  updateUsername
 };

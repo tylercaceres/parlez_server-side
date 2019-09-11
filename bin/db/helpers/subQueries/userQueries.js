@@ -40,6 +40,7 @@ const getFriendInfo = user_id => {
 };
 
 const deleteFriend = (user_id, friend_id) => {
+
   console.log("info being passed to the deleteFriend query:", user_id, friend_id);
   return db
     .query({
@@ -53,6 +54,7 @@ const deleteFriend = (user_id, friend_id) => {
       name: "delete_friend"
     })
     .then(res => getFriendInfo(user_id));
+
 };
 
 const addFriend = (user_id, friend_id) => {
@@ -68,10 +70,25 @@ const addFriend = (user_id, friend_id) => {
     .then(() => getFriendInfo(user_id));
 };
 
+const updateUsername = (user_id, username) => {
+  return db
+    .query({
+      text: `UPDATE users
+    SET username = $2
+    WHERE id = $1
+    RETURNING *;
+    `,
+      values: [user_id, username],
+      name: "update_username"
+    })
+    .then(res => res.rows[0]);
+};
+
 module.exports = {
   getUserInfo,
   getFriendInfo,
   deleteFriend,
   addFriend,
-  getNewFriendInfo
+  getNewFriendInfo,
+  updateUsername
 };
