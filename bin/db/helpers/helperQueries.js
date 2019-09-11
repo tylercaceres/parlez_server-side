@@ -26,15 +26,12 @@ const {
   deleteFriend,
   addFriend,
   getNewFriendInfo,
-  updateUsername
+  updateUsername,
+  updateAvatar,
+  updateStatus
 } = require("./subQueries/userQueries");
 
-const {
-  getUserByEmailDB,
-  getUserByUserIdDB,
-  addUserDB,
-  createFriendlistDB
-} = require("./subQueries/authQueries");
+const { getUserByEmailDB, getUserByUserIdDB, addUserDB, createFriendlistDB } = require("./subQueries/authQueries");
 
 module.exports = {
   getNewSpecificChatroomMessage,
@@ -61,5 +58,7 @@ module.exports = {
   deleteViewableMessages,
   deleteChatroomMessageViews,
   getNewFriendInfo,
-  updateUsername
+  updateUsername,
+  updateAvatar,
+  updateStatus
 };
