@@ -40,6 +40,7 @@ const getFriendInfo = user_id => {
 };
 
 const deleteFriend = (user_id, friend_id) => {
+
   console.log("info being passed to the deleteFriend query:", user_id, friend_id);
   return db
     .query({
@@ -53,6 +54,7 @@ const deleteFriend = (user_id, friend_id) => {
       name: "delete_friend"
     })
     .then(res => getFriendInfo(user_id));
+
 };
 
 const addFriend = (user_id, friend_id) => {
