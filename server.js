@@ -26,10 +26,7 @@ const session = require("express-session");
 
 app.use(function(req, res, next) {
   res.header("Access-Control-Allow-Origin", "http://localhost:3000"); // update to match the domain you will make the request from
-  res.header(
-    "Access-Control-Allow-Headers",
-    "Origin, X-Requested-With, Content-Type, Accept"
-  );
+  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
   res.header("Access-Control-Allow-Methods", "GET,PUT,POST,DELETE");
   res.header("Access-Control-Allow-Credentials", true);
   next();
@@ -63,12 +60,9 @@ const participantSockets = {};
  */
 
 // const
-const {
-  createChatroomMessage
-} = require("./bin/db/helpers/subQueries/chatroomMessageQueries");
-createChatroomMessage(1, 1, "hello there").then(res =>
-  console.log("THIS IS THE NEW MSG:", res[0])
-);
+const { createChatroomMessage } = require("./bin/db/helpers/subQueries/chatroomMessageQueries");
+createChatroomMessage(1, 1, "hello there").then(res => console.log("THIS IS THE NEW MSG:", res[0]));
+
 
 // dbQueries.getFriendInfo(1).then((res) => console.log('THE FRIENDLIST FUNCTION:', res));
 // ********** FUNCTIONS FOR SOCKETS **********
@@ -81,9 +75,8 @@ io.on("connect", socket => {
     try {
       const activeChatrooms = await dbQueries.getActiveChatrooms(user_id);
       activeChatrooms.forEach(chatroom => socket.join(chatroom.chatroom_id));
-      const recentChatroomMessages = await dbQueries.getRecentChatroomMessages(
-        user_id
-      );
+      const recentChatroomMessages = await dbQueries.getRecentChatroomMessages(user_id);
+
       const friendList = await dbQueries.getFriendInfo(user_id);
       socket.emit("initial message data", recentChatroomMessages);
       socket.emit("friendlist data", friendList);
@@ -93,29 +86,23 @@ io.on("connect", socket => {
       console.log("Error! :", error);
     }
   };
-
-  const createNewChatroom = async (
-    type,
-    name,
-    creatorUserId,
-    usersArr,
-    avatar = ""
-  ) => {
+  const createNewChatroom = async (type, name, creatorUserId, usersArr, avatar = "") => {
     try {
-      const newParticipants = await dbQueries.createChatroom(
-        type,
-        name,
-        creatorUserId,
-        usersArr,
-        avatar
-      );
+      const newParticipants = await dbQueries.createChatroom(type, name, creatorUserId, usersArr, avatar);
       const newChatroomId = newParticipants[0].chatroom_id;
       usersArr.forEach(user => {
-        io.sockets.sockets[participantSockets[user]].join(newChatroomId);
+        console.log("USER1234:", user);
+        if (io.sockets.sockets[participantSockets[user]]) {
+          console.log("USER 123:", user);
+          io.sockets.sockets[participantSockets[user]].join(newChatroomId);
+        }
       });
+      botMessageEmit(newChatroomId, "user created chatroom", creatorUserId);
       usersArr.forEach(user => {
+        console.log("userrrrrr123:", user);
         console.log(`${user} has joined the room`);
         botMessageEmit(newChatroomId, "user joined chatroom", user);
+        console.log("useruseruseruser123456789");
       });
 
       //bot creates message to the entire chatroom
@@ -128,11 +115,7 @@ io.on("connect", socket => {
 
   const createNewMessage = async (user_id, chatroom_id, content) => {
     try {
-      const newChatroomMessage = await dbQueries.createChatroomMessage(
-        user_id,
-        chatroom_id,
-        content
-      );
+      const newChatroomMessage = await dbQueries.createChatroomMessage(user_id, chatroom_id, content);
       console.log("NEW CHATROOM MESSAGE:", newChatroomMessage[0]);
       io.to(chatroom_id).emit("new chatroom message", newChatroomMessage[0]);
     } catch (error) {
@@ -143,10 +126,9 @@ io.on("connect", socket => {
   const deleteMessage = async (user_id, message_id, creator_id) => {
     console.log("before try");
     try {
-      const deletedChatroomMessage = await dbQueries.deleteChatroomMessage(
-        user_id,
-        message_id
-      );
+
+      const deletedChatroomMessage = await dbQueries.deleteChatroomMessage(user_id, message_id);
+
       await dbQueries.deleteChatroomMessageViews(user_id, message_id);
       const deletedMsg = await dbQueries.getSingleChatroomMessage(message_id);
       socket.emit("delete my message", deletedMsg);
@@ -162,10 +144,8 @@ io.on("connect", socket => {
 
   const deleteViewableMessages = async (user_id, chatroom_id) => {
     try {
-      const deleted = await dbQueries.deleteViewableMessages(
-        user_id,
-        chatroom_id
-      );
+      const deleted = await dbQueries.deleteViewableMessages(user_id, chatroom_id);
+
       console.log("the messages that have been deleted from views", deleted);
       socket.emit("delete viewable messages", chatroom_id);
     } catch (error) {
@@ -181,7 +161,9 @@ io.on("connect", socket => {
     }
   };
 
-  const addFriend = async (friend_id, user_id) => {
+
+  const addFriend = async (user_id, friend_id) => {
+
     try {
       const friendlist = await dbQueries.addFriend(user_id, friend_id);
       console.log("SERVER SIDE CHECKING FIRNEDLIST", friendlist);
@@ -191,9 +173,12 @@ io.on("connect", socket => {
     }
   };
 
-  const deleteFriend = async friend_id => {
+
+  const deleteFriend = async (user_id, friend_id) => {
     try {
-      const friendlist = await dbQueries.deleteFriend(socket.userid, friend_id);
+      const friendlist = await dbQueries.deleteFriend(user_id, friend_id);
+      console.log("deleted friendlist");
+      console.log("FRRRRRRRRRRRR:", friendlist);
       socket.emit("friendlist data", friendlist);
     } catch (error) {
       console.log("Error! :", error);
@@ -201,10 +186,8 @@ io.on("connect", socket => {
   };
 
   const searchNewFriend = async email => {
-    console.log(
-      "BEFOPRE TRY checking to see what the email is in the server",
-      email
-    );
+
+    console.log("BEFOPRE TRY checking to see what the email is in the server", email);
 
     try {
       console.log("checking to see what the email is in the server", email);
@@ -218,6 +201,7 @@ io.on("connect", socket => {
       console.log("Error! :", error);
     }
   };
+
 
   const updateUsername = async (user_id, username) => {
     try {
@@ -250,14 +234,11 @@ io.on("connect", socket => {
 
   const botMessageEmit = async (chatroom_id, type_of_action, user_id) => {
     try {
-      const username = await dbQueries.getUserInfo(user_id).username;
-      const msgContent = botMessageCreateContent(type_of_action, username);
-      const botMessage = await dbQueries.createChatroomMessage(
-        0,
-        chatroom_id,
-        msgContent
-      );
-      io.to(chatroom_id).emit("new chatroom message", botMessage);
+
+      const userName = await dbQueries.getUserInfo(user_id);
+      const msgContent = botMessageCreateContent(type_of_action, userName.username);
+      const botMessage = await dbQueries.createChatroomMessage(0, chatroom_id, msgContent);
+      io.to(chatroom_id).emit("new chatroom message", botMessage[0]);
     } catch (error) {
       console.log("Error! :", error);
     }
@@ -268,10 +249,9 @@ io.on("connect", socket => {
     socket.userid = data;
     let currentSocket = participantSockets[socket.userid];
     if (currentSocket && io.sockets.sockets[currentSocket]) {
-      console.log(
-        "currently logged in socket: ",
-        participantSockets[currentSocket]
-      );
+
+      console.log("currently logged in socket: ", participantSockets[currentSocket]);
+
       //send a message to the client about to be disconnected (pop up saying they got disconnected, etc)
       io.to(currentSocket).emit("to be disconnected");
       //potentially add in a timeout? (delay)
@@ -310,9 +290,14 @@ io.on("connect", socket => {
     });
 
     socket.on("add new friend", friendToAdd => {
-      addFriend(friendToAdd.id, socket.userid);
+
+      addFriend(socket.userid, friendToAdd.id);
     });
-    // 	socket.on('create new message', newMessageData => {});
+
+    socket.on("delete friend", friendToDelete => {
+      console.log("FRIEND-TO-DELETE", friendToDelete);
+      deleteFriend(socket.userid, friendToDelete);
+    });
 
     socket.on("create single chat", data => {
       console.log("CREATE SINGLE FREIND", data);
@@ -335,7 +320,6 @@ io.on("connect", socket => {
         data.avatar
       );
     });
-
     socket.on("change name", data => {
       console.log("CHANGE NAME", data);
       updateUsername(data.creatorUserId, data.username);

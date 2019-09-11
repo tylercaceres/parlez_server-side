@@ -16,8 +16,7 @@ const getUserInfo = user_id => {
 const getNewFriendInfo = email => {
   return db
     .query({
-      text:
-        "SELECT username, email, avatar, status, id FROM users WHERE email=$1 AND is_active=true;",
+      text: "SELECT username, email, avatar, status, id FROM users WHERE email=$1 AND is_active=true;",
       values: [email],
       name: "get_new_friend_info"
     })
@@ -41,19 +40,19 @@ const getFriendInfo = user_id => {
 };
 
 const deleteFriend = (user_id, friend_id) => {
+  console.log("info being passed to the deleteFriend query:", user_id, friend_id);
   return db
     .query({
-      text: `
-			DELETE FROM friends WHERE id IN
-			(SELECT f.id
-			FROM users u join friendlists fl on u.id = fl.user_id
-			join friends f on f.friendlist_id = fl.id
-			WHERE (u.id = $1 and f.friend_id = $2) or (u.id = $2 and f.friend_id = $1))
-			RETURNING *;`,
+      text: `DELETE FROM friends WHERE id IN (SELECT f.id
+				FROM users u join friendlists fl on u.id = fl.user_id
+				join friends f on f.friendlist_id = fl.id
+				WHERE (u.id = $1 and f.friend_id = $2) or (u.id = $2 and f.friend_id = $1))
+				RETURNING *;`,
+
       values: [user_id, friend_id],
       name: "delete_friend"
     })
-    .then(res => res.rows);
+    .then(res => getFriendInfo(user_id));
 };
 
 const addFriend = (user_id, friend_id) => {
@@ -66,7 +65,7 @@ const addFriend = (user_id, friend_id) => {
       values: [user_id, friend_id],
       name: "add_friend"
     })
-    .then(res => getFriendInfo(user_id));
+    .then(() => getFriendInfo(user_id));
 };
 
 const updateUsername = (user_id, username) => {
