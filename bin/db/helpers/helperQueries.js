@@ -17,27 +17,17 @@ const {
   updateChatroom,
   updateChatroomParticipant,
   deleteChatroomParticipant,
-  deleteViewableMessages
+  deleteViewableMessages,
+  checkInChatAlready
 } = require("./subQueries/chatroomQueries");
 
-const {
-  getUserInfo,
-  getFriendInfo,
-  deleteFriend,
-  addFriend,
-  getNewFriendInfo,
-  updateUsername
-} = require("./subQueries/userQueries");
+const { getUserInfo, getFriendInfo, deleteFriend, addFriend, getNewFriendInfo } = require("./subQueries/userQueries");
 
-const {
-  getUserByEmailDB,
-  getUserByUserIdDB,
-  addUserDB,
-  createFriendlistDB
-} = require("./subQueries/authQueries");
+const { getUserByEmailDB, getUserByUserIdDB, addUserDB, createFriendlistDB } = require("./subQueries/authQueries");
 
 module.exports = {
   getNewSpecificChatroomMessage,
+  checkInChatAlready,
   getUserByEmailDB,
   getUserByUserIdDB,
   createFriendlistDB,
