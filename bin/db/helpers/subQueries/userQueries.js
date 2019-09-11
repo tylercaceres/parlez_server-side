@@ -68,10 +68,25 @@ const addFriend = (user_id, friend_id) => {
     .then(() => getFriendInfo(user_id));
 };
 
+const updateUsername = (user_id, username) => {
+  return db
+    .query({
+      text: `UPDATE users
+    SET username = $2
+    WHERE id = $1
+    RETURNING *;
+    `,
+      values: [user_id, username],
+      name: "update_username"
+    })
+    .then(res => res.rows[0]);
+};
+
 module.exports = {
   getUserInfo,
   getFriendInfo,
   deleteFriend,
   addFriend,
-  getNewFriendInfo
+  getNewFriendInfo,
+  updateUsername
 };
