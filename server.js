@@ -25,11 +25,11 @@ app.use(express.static(__dirname + '/public'));
 const session = require('express-session');
 
 app.use(function(req, res, next) {
-	res.header('Access-Control-Allow-Origin', 'http://localhost:3000'); // update to match the domain you will make the request from
-	res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
-	res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
-	res.header('Access-Control-Allow-Credentials', true);
-	next();
+  res.header("Access-Control-Allow-Origin", "http://localhost:3000"); // update to match the domain you will make the request from
+  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+  res.header("Access-Control-Allow-Methods", "GET,PUT,POST,DELETE");
+  res.header("Access-Control-Allow-Credentials", true);
+  next();
 });
 
 app.use(
@@ -63,10 +63,12 @@ const participantSockets = {};
 const {createChatroomMessage} = require('./bin/db/helpers/subQueries/chatroomMessageQueries');
 createChatroomMessage(1, 1, 'hello there').then(res => console.log('THIS IS THE NEW MSG:', res[0]));
 
+
 // dbQueries.getFriendInfo(1).then((res) => console.log('THE FRIENDLIST FUNCTION:', res));
 // ********** FUNCTIONS FOR SOCKETS **********
 
 // ********************** SOCKETS
+
 
 io.on('connect', socket => {
 	// ********** FUNCTIONS FOR SOCKETS **********
@@ -281,4 +283,5 @@ io.on('connect', socket => {
 			createNewChatroom(data.type, data.name, data.creatorUserId, data.usersArr, data.avatar);
 		});
 	});
+
 });
