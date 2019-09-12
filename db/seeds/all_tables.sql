@@ -1,3 +1,5 @@
+CREATE EXTENSION IF NOT EXISTS pgcrypto; 
+
 INSERT INTO users (id,email, password, username, avatar, status, is_active) VALUES 
 (0,'admin', 'admin', 'Mr. Roboto', 'https://avatarfiles.alphacoders.com/130/130532.jpg', 'TERMINATOR', true);
 

@@ -264,6 +264,7 @@ io.on("connect", socket => {
   const updateStatus = async (user_id, status) => {
     try {
       const newUserStatus = await dbQueries.updateStatus(user_id, status);
+      console.log("new user status", newUserStatus);
       socket.emit("updated status data", newUserStatus);
     } catch (error) {
       console.log("Error! :", error);
@@ -391,6 +392,11 @@ io.on("connect", socket => {
     socket.on("change name", data => {
       console.log("CHANGE NAME", data);
       updateUsername(data.creatorUserId, data.username);
+    });
+
+    socket.on("change status", data => {
+      console.log("CHANGE status", data);
+      updateStatus(data.creatorUserId, data.status);
     });
 
     socket.on("leave chatroom", ({ user_id, chatroom_id }) => {
