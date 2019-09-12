@@ -276,7 +276,7 @@ io.on("connect", socket => {
   const updateChatroomName = async (chatroomid, avatar) => {
     try {
       const updatedChatroomInfo = await dbQueries.updateChatroomName(chatroomid, avatar);
-      socket.emit("updated chat data", updatedChatroomInfo);
+      io.to(chatroomid).emit("updated chat data", updatedChatroomInfo);
     } catch (error) {
       console.log("Error! :", error);
     }
@@ -285,7 +285,7 @@ io.on("connect", socket => {
   const updateChatroomAvatar = async (chatroomid, avatar) => {
     try {
       const updatedChatroomInfo = await dbQueries.updateChatroomAvatar(chatroomid, avatar);
-      socket.emit("updated chat data", updatedChatroomInfo);
+      io.to(chatroomid).emit("updated chat data", updatedChatroomInfo);
     } catch (error) {
       console.log("Error! :", error);
     }
