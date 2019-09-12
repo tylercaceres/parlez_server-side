@@ -27,6 +27,22 @@ const createChatroom = (chatroom_type, name, user_id, users_arr, avatar) => {
     .then(res => res.rows);
 };
 
+addMultipleChatroomParticipants = (usersArr, chatroom_id) => {
+  let queryString = "";
+  queryString += `INSERT INTO participants (chatroom_id, user_id) VALUES `;
+  usersArr.forEach((user, index) => {
+    queryString += `(${chatroom_id},${user})`;
+    queryString += index === usersArr.length - 1 ? "" : ",";
+  });
+  queryString += " RETURNING *;";
+
+  return db.query({
+    text: queryString,
+    // values: [usersArr, chatroom_id],
+    name: "add_multiple_chatroom_participants"
+  });
+};
+
 const addChatroomParticipant = (user_id, chatroom_id) => {
   return db
     .query({
@@ -167,5 +183,6 @@ module.exports = {
   checkInChatAlready,
   participantsInChatroom,
   updateChatroomName,
-  updateChatroomAvatar
+  updateChatroomAvatar,
+  addMultipleChatroomParticipants
 };
