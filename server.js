@@ -273,6 +273,33 @@ io.on("connect", socket => {
     }
   };
 
+  const updateChatroomName = async (chatroomid, avatar) => {
+    try {
+      const updatedChatroomInfo = await dbQueries.updateChatroomName(chatroomid, avatar);
+      socket.emit("updated chat data", updatedChatroomInfo);
+    } catch (error) {
+      console.log("Error! :", error);
+    }
+  };
+
+  const updateChatroomAvatar = async (chatroomid, avatar) => {
+    try {
+      const updatedChatroomInfo = await dbQueries.updateChatroomAvatar(chatroomid, avatar);
+      socket.emit("updated chat data", updatedChatroomInfo);
+    } catch (error) {
+      console.log("Error! :", error);
+    }
+  };
+
+  const fetchChatroomParticipants = async chatroomid => {
+    try {
+      const chatroomParticipants = await dbQueries.fetchChatroomParticipants(chatroomid);
+      socket.emit("get chatroom participants", chatroomParticipants);
+    } catch (error) {
+      console.log("Error! :", error);
+    }
+  };
+
   socket.on("initialize", data => {
     console.log("user_id from client", data);
     socket.userid = data;
@@ -351,6 +378,20 @@ io.on("connect", socket => {
       console.log("CHANGE URL", data);
       updateAvatar(data.creatorUserId, data.avatar);
     });
+
+    socket.on("change chat name", data => {
+      console.log("change chat name", data);
+      updateChatroomName(data.chatroomId, data.name);
+    });
+
+    socket.on("change chat avatar", data => {
+      console.log("change chat avatar", data);
+      updateChatroomAvatar(data.chatroomId, data.avatar);
+    });
+
+    socket.on("fetch chatroom participants", data => {
+      console.log("fetch chatroom participants", data);
+      fetchChatroomParticipants(data);
+    });
   });
-  //socket on initialize
 });

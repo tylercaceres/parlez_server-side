@@ -122,6 +122,40 @@ const deleteViewableMessages = (user_id, chatroom_id) => {
     .then(res => res.rows);
 };
 
+const participantsInChatroom = chatroom_id => {
+  return db
+    .query({
+      text: `select u.id as user_id, u.email as email, u.username as username, u.avatar as avatar, p.is_admin as admin
+    from users u join participants p on u.id = p.user_id
+    where p.chatroom_id = $1`,
+      values: [chatroom_id],
+      name: "participants_in_chatroom"
+    })
+    .then(res => res.rows);
+};
+
+const updateChatroomName = (chatroom_id, chatroom_name) => {
+  return db
+    .query({
+      text: `UPDATE chatrooms SET name = $2
+      WHERE id = $1 RETURNING *;`,
+      values: [chatroom_id, chatroom_name],
+      name: "update_chatroom_name"
+    })
+    .then(res => res.rows[0]);
+};
+
+const updateChatroomAvatar = (chatroom_id, chatroom_avatar) => {
+  return db
+    .query({
+      text: `UPDATE chatrooms SET avatar = $2
+      WHERE id = $1 RETURNING *;`,
+      values: [chatroom_id, chatroom_avatar],
+      name: "update_chatroom_avatar"
+    })
+    .then(res => res.rows[0]);
+};
+
 module.exports = {
   createChatroom,
   addChatroomParticipant,
@@ -130,5 +164,8 @@ module.exports = {
   updateChatroomParticipant,
   deleteChatroomParticipant,
   deleteViewableMessages,
-  checkInChatAlready
+  checkInChatAlready,
+  participantsInChatroom,
+  updateChatroomName,
+  updateChatroomAvatar
 };
