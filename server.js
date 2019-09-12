@@ -293,7 +293,7 @@ io.on("connect", socket => {
 
   const fetchChatroomParticipants = async chatroomid => {
     try {
-      const chatroomParticipants = await dbQueries.fetchChatroomParticipants(chatroomid);
+      const chatroomParticipants = await dbQueries.participantsInChatroom(chatroomid);
       socket.emit("get chatroom participants", chatroomParticipants);
     } catch (error) {
       console.log("Error! :", error);
