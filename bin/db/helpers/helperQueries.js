@@ -21,7 +21,8 @@ const {
   checkInChatAlready,
   participantsInChatroom,
   updateChatroomName,
-  updateChatroomAvatar
+  updateChatroomAvatar,
+  addMultipleChatroomParticipants
 } = require("./subQueries/chatroomQueries");
 
 const {
@@ -39,6 +40,7 @@ const {
 const { getUserByEmailDB, getUserByUserIdDB, addUserDB, createFriendlistDB } = require("./subQueries/authQueries");
 
 module.exports = {
+  addMultipleChatroomParticipants,
   getNewSpecificChatroomMessage,
   checkInChatAlready,
   getUserByEmailDB,

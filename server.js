@@ -53,8 +53,6 @@ const dbQueries = require("./bin/db/helpers/helperQueries");
 // global object to store the latest socket of a user
 const participantSockets = {};
 
-dbQueries.checkInChatAlready(1, 2).then(res => console.log("I AM WRITING THIS THEEEHE:", res));
-
 /**
  * !socket global object
  * participantSockets = {'1' : 'xyz1234___1234',
@@ -172,6 +170,23 @@ io.on("connect", socket => {
       await deleteViewableMessages(user_id, chatroom_id);
       await dbQueries.deleteChatroomParticipant(user_id, chatroom_id);
       botMessageEmit(chatroom_id, "user left chatroom", user_id);
+    } catch (error) {
+      console.log("Error! :", error);
+    }
+  };
+
+  const addParticipantsToChatroom = async (chatroom_id, usersArr) => {
+    try {
+      await dbQueries.addMultipleChatroomParticipants(usersArr, chatroom_id);
+      usersArr.forEach(user => {
+        if (io.sockets.sockets[participantSockets[user]]) {
+          console.log("USER TO ADD TO CHATROOM:", user);
+          io.sockets.sockets[participantSockets[user]].join(chatroom_id);
+        }
+      });
+      usersArr.forEach(user => {
+        botMessageEmit(chatroom_id, "user joined chatroom", user);
+      });
     } catch (error) {
       console.log("Error! :", error);
     }
@@ -392,6 +407,11 @@ io.on("connect", socket => {
     socket.on("fetch chatroom participants", data => {
       console.log("fetch chatroom participants", data);
       fetchChatroomParticipants(data);
+    });
+
+    socket.on("add chatroom participants", data => {
+      console.log("add chatroom participants", data);
+      addParticipantsToChatroom(data.id, data.usersArr);
     });
   });
 });
