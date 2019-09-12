@@ -83,6 +83,17 @@ io.on("connect", socket => {
     }
   };
 
+  const refreshFriendList = async user_id => {
+    try {
+      const friendList = await dbQueries.getFriendInfo(user_id);
+      socket.emit("friendlist data", friendList);
+
+      // io.to(chatroom.chatroom_id).emit('new chatroom joined', `${socket.id} joined room ${chatroom.id}`);
+    } catch (error) {
+      console.log("Error! :", error);
+    }
+  };
+
   const createNewChatroom = async (type, name, creatorUserId, usersArr, avatar = "") => {
     try {
       if (type === "single") {
@@ -308,7 +319,7 @@ io.on("connect", socket => {
 
   const fetchChatroomParticipants = async chatroomid => {
     try {
-      const chatroomParticipants = await dbQueries.fetchChatroomParticipants(chatroomid);
+      const chatroomParticipants = await dbQueries.participantsInChatroom(chatroomid);
       socket.emit("get chatroom participants", chatroomParticipants);
     } catch (error) {
       console.log("Error! :", error);
@@ -412,6 +423,11 @@ io.on("connect", socket => {
     socket.on("add chatroom participants", data => {
       console.log("add chatroom participants", data);
       addParticipantsToChatroom(data.id, data.usersArr);
+    });
+
+    socket.on("fetch friend list", () => {
+      console.log("FETCHING FRIEND LIST");
+      refreshFriendList(socket.userid);
     });
   });
 });
