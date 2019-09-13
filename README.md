@@ -1,4 +1,6 @@
 # Parlez - Let's Talk
+Lighthouse Labs Final project
+#### real time messaging application using socket IO
 
 ### Light House Lab Final Project
 
